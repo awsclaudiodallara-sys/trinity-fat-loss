@@ -1,0 +1,17 @@
+{
+  "name": "Trinity Fat Loss",
+  "short_name": "Trinity",
+  "description": "Your fitness journey with trio accountability",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F9FAFB",
+  "theme_color": "#6366F1",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/trinity-logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

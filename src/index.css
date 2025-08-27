@@ -1,0 +1,490 @@
+@import "tailwindcss";
+@import "./assets/animations.css";
+
+/* Trinity Colors - CSS Variables */
+:root {
+  --color-trinity-primary: 74 144 226; /* #4A90E2 */
+  --color-trinity-secondary: 126 211 33; /* #7ED321 */
+  --color-trinity-accent: 255 107 53; /* #FF6B35 */
+  --color-trinity-grey: 142 142 147; /* #8E8E93 */
+  --color-trinity-text: 29 29 31; /* #1D1D1F */
+}
+
+/* ============================= */
+/* LANDING PAGE & ONBOARDING    */
+/* ============================= */
+
+/* Landing Page Utilities */
+.trinity-gradient {
+  background: linear-gradient(135deg, rgb(74 144 226) 0%, rgb(126 211 33) 100%);
+}
+
+.trinity-hero-gradient {
+  background: linear-gradient(135deg, #4a90e2 0%, #6366f1 50%, #ec4899 100%);
+}
+
+/* Card Components */
+.trinity-card {
+  background-color: white;
+  border-radius: 1rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgb(243 244 246);
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.trinity-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.15);
+}
+
+/* Button System */
+.trinity-button {
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: none;
+}
+
+.trinity-button-primary {
+  background-color: rgb(37 99 235);
+  color: white;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  transform: translateY(0);
+}
+
+.trinity-button-primary:hover {
+  background-color: rgb(29 78 216);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.trinity-button-secondary {
+  background-color: white;
+  color: rgb(37 99 235);
+  border: 2px solid rgb(37 99 235);
+}
+
+.trinity-button-secondary:hover {
+  background-color: rgb(37 99 235);
+  color: white;
+}
+
+/* App Store Button Styles */
+.app-store-button {
+  background-color: black;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 2rem;
+  min-width: 200px;
+  transition: all 0.3s ease;
+  transform: scale(1);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  border-radius: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+}
+
+.app-store-button:hover {
+  background-color: rgb(55 65 81);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  transform: scale(1.05) translateY(-2px);
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  max-width: 42rem;
+  margin: 0 auto;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-number {
+  font-size: 1.875rem;
+  font-weight: bold;
+  line-height: 2.25rem;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  opacity: 0.75;
+  line-height: 1.25rem;
+}
+
+/* Form Inputs */
+.trinity-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgb(229 231 235);
+  background-color: white;
+  transition: all 0.2s ease;
+  min-height: 48px;
+}
+
+.trinity-input:focus {
+  border-color: rgb(59 130 246);
+  ring: 2px;
+  ring-color: rgba(59, 130, 246, 0.2);
+  outline: none;
+}
+
+/* Onboarding specific utilities */
+.onboarding-container {
+  min-height: 100vh;
+  background: linear-gradient(
+    to bottom right,
+    rgb(59 130 246),
+    rgb(147 51 234)
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.onboarding-card {
+  background-color: white;
+  border-radius: 1.5rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  padding: 2rem;
+  max-width: 28rem;
+  width: 100%;
+}
+
+/* ============================= */
+/* ANIMATIONS & KEYFRAMES       */
+/* ============================= */
+
+/* Animation utilities */
+.animate-fade-in {
+  animation: fadeIn 0.8s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-bounce-in {
+  animation: bounceIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes bounceIn {
+  0% {
+    transform: scale(0.3) rotate(-10deg);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1) rotate(5deg);
+  }
+  70% {
+    transform: scale(0.95) rotate(-2deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+/* Glow effect */
+.animate-glow {
+  animation: glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+  from {
+    box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
+  }
+  to {
+    box-shadow: 0 0 30px rgba(168, 85, 247, 0.8),
+      0 0 40px rgba(219, 39, 119, 0.4);
+  }
+}
+
+/* Floating animation */
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* Pulse with scale */
+.animate-pulse-scale {
+  animation: pulseScale 2s ease-in-out infinite;
+}
+
+@keyframes pulseScale {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+/* Shake animation for errors */
+.animate-shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
+}
+
+/* Gradient animation for buttons */
+.animate-gradient {
+  background-size: 400% 400%;
+  animation: gradient 3s ease infinite;
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Loading Spinner */
+.loading-spinner {
+  animation: spin 1s linear infinite;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 2px solid rgb(209 213 219);
+  border-top-color: rgb(37 99 235);
+  border-radius: 50%;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================= */
+/* RESPONSIVE BREAKPOINTS        */
+/* ============================= */
+
+/* Mobile responsive utilities */
+.mobile-padding {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 640px) {
+  .mobile-padding {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .mobile-padding {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+.mobile-text {
+  font-size: 0.875rem;
+}
+
+@media (min-width: 640px) {
+  .mobile-text {
+    font-size: 1rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .mobile-text {
+    font-size: 1.125rem;
+  }
+}
+
+.mobile-button {
+  width: 100%;
+  min-width: 140px;
+}
+
+@media (min-width: 640px) {
+  .mobile-button {
+    width: auto;
+  }
+}
+
+/* ============================= */
+/* UTILITY HELPERS              */
+/* ============================= */
+
+/* Combined utility for common patterns */
+.trinity-section {
+  padding-top: 4rem;
+  padding-bottom: 4rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  max-width: 80rem;
+  margin: 0 auto;
+}
+
+@media (min-width: 640px) {
+  .trinity-section {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .trinity-section {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+.trinity-heading {
+  font-size: 1.875rem;
+  font-weight: bold;
+  color: rgb(17 24 39);
+  margin-bottom: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .trinity-heading {
+    font-size: 2.25rem;
+  }
+}
+
+.trinity-subheading {
+  font-size: 1.25rem;
+  color: rgb(75 85 99);
+  margin-bottom: 2rem;
+  max-width: 42rem;
+}
+
+/* Success patterns */
+.trinity-success {
+  color: rgb(22 163 74);
+  background-color: rgb(240 253 244);
+  border: 1px solid rgb(34 197 94);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+}
+
+/* Skeleton Loading */
+.skeleton {
+  background-color: rgb(229 231 235);
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  border-radius: 0.25rem;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Focus Styles */
+.focus-trinity:focus {
+  outline: none;
+  ring: 2px;
+  ring-color: rgb(59 130 246);
+  ring-offset: 2px;
+}
+
+/* Empty States */
+.empty-state {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  color: rgb(107 114 128);
+}
+
+/* ============================= */
+/* MEDIA QUERIES                 */
+/* ============================= */
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+  .trinity-card {
+    border: 2px solid rgb(31 41 55);
+  }
+
+  .trinity-button-primary {
+    border: 2px solid rgb(30 64 175);
+  }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .trinity-button,
+  .trinity-card,
+  .animate-fade-in,
+  .animate-slide-up,
+  .animate-bounce-in {
+    animation: none !important;
+    transition: none !important;
+  }
+}
