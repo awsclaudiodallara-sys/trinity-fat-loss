@@ -37,6 +37,7 @@ export const WeeklyCheckIn: React.FC<WeeklyCheckInProps> = () => {
   const [saving, setSaving] = useState(false);
   const [weeklyTasks, setWeeklyTasks] = useState<WeeklyTaskWithUI[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [isExpanded, setIsExpanded] = useState<boolean>(true);
 
   // Calculate week start (Monday) like in supabase.ts
   const getWeekStart = () => {
@@ -466,132 +467,153 @@ export const WeeklyCheckIn: React.FC<WeeklyCheckInProps> = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">📝 Weekly Check-In</h3>
-        <span className="text-sm text-gray-500">{getWeekDisplay()}</span>
-        {saving && (
-          <span className="text-xs text-blue-500 animate-pulse">
-            Salvando...
-          </span>
-        )}
+      {/* Collapsible Header */}
+      <div
+        className="flex items-center justify-between cursor-pointer p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
+        onClick={() => setIsExpanded(!isExpanded)}
+      >
+        <div className="flex items-center space-x-3">
+          <h3 className="text-lg font-semibold">📝 Weekly Check-In</h3>
+          <span className="text-sm text-gray-500">{getWeekDisplay()}</span>
+        </div>
+        <div className="flex items-center space-x-3">
+          {saving && (
+            <span className="text-xs text-blue-500 animate-pulse">
+              Salvando...
+            </span>
+          )}
+          <button className="text-gray-400 hover:text-gray-600 transition-colors">
+            {isExpanded ? "🔽" : "▶️"}
+          </button>
+        </div>
       </div>
 
-      {/* Measurements Section */}
-      <div className="space-y-4">
-        <h4 className="text-md font-medium text-gray-800">📏 Misurazioni</h4>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {measurementTasks.map((task) => (
-            <div key={task.id} className="space-y-3 p-4 bg-gray-50 rounded-lg">
-              {/* Task completion checkbox */}
-              <div className="flex items-center justify-between">
-                <label className="flex items-center space-x-2">
-                  <span className="text-lg">{task.emoji}</span>
-                  <span className="text-sm font-medium text-gray-700">
-                    {task.name}
-                  </span>
-                </label>
-                <button
-                  onClick={() => toggleTask(task.id)}
-                  disabled={
-                    task.hasValue &&
-                    (!task.actual_value ||
-                      !isValidValue(task.task_type, task.actual_value)) &&
-                    !task.completed
-                  }
-                  className={`w-5 h-5 rounded flex items-center justify-center text-xs shadow-sm transition-colors duration-200 ${
-                    task.completed
-                      ? "bg-gradient-to-br from-green-400 to-green-500 text-white"
-                      : task.hasValue &&
-                        (!task.actual_value ||
-                          !isValidValue(task.task_type, task.actual_value))
-                      ? "bg-gray-100 text-gray-300 cursor-not-allowed"
-                      : "bg-gray-200/80 text-gray-400 hover:bg-gray-300 cursor-pointer"
-                  }`}
-                  title={
-                    task.hasValue &&
-                    (!task.actual_value ||
-                      !isValidValue(task.task_type, task.actual_value)) &&
-                    !task.completed
-                      ? "Inserisci un valore valido per completare"
-                      : ""
-                  }
+      {/* Collapsible Content */}
+      {isExpanded && (
+        <>
+          {/* Measurements Section */}
+          <div className="space-y-4">
+            <h4 className="text-md font-medium text-gray-800">
+              📏 Misurazioni
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {measurementTasks.map((task) => (
+                <div
+                  key={task.id}
+                  className="space-y-3 p-4 bg-gray-50 rounded-lg"
                 >
-                  {task.completed ? "✓" : ""}
-                </button>
-              </div>
+                  {/* Task completion checkbox */}
+                  <div className="flex items-center justify-between">
+                    <label className="flex items-center space-x-2">
+                      <span className="text-lg">{task.emoji}</span>
+                      <span className="text-sm font-medium text-gray-700">
+                        {task.name}
+                      </span>
+                    </label>
+                    <button
+                      onClick={() => toggleTask(task.id)}
+                      disabled={
+                        task.hasValue &&
+                        (!task.actual_value ||
+                          !isValidValue(task.task_type, task.actual_value)) &&
+                        !task.completed
+                      }
+                      className={`w-5 h-5 rounded flex items-center justify-center text-xs shadow-sm transition-colors duration-200 ${
+                        task.completed
+                          ? "bg-gradient-to-br from-green-400 to-green-500 text-white"
+                          : task.hasValue &&
+                            (!task.actual_value ||
+                              !isValidValue(task.task_type, task.actual_value))
+                          ? "bg-gray-100 text-gray-300 cursor-not-allowed"
+                          : "bg-gray-200/80 text-gray-400 hover:bg-gray-300 cursor-pointer"
+                      }`}
+                      title={
+                        task.hasValue &&
+                        (!task.actual_value ||
+                          !isValidValue(task.task_type, task.actual_value)) &&
+                        !task.completed
+                          ? "Inserisci un valore valido per completare"
+                          : ""
+                      }
+                    >
+                      {task.completed ? "✓" : ""}
+                    </button>
+                  </div>
 
-              {/* Value input */}
-              <div className="flex items-center space-x-2">
-                <input
-                  type="number"
-                  step="0.1"
-                  value={task.actual_value || ""}
-                  onChange={(e) => {
-                    const inputValue = e.target.value;
+                  {/* Value input */}
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={task.actual_value || ""}
+                      onChange={(e) => {
+                        const inputValue = e.target.value;
 
-                    // If empty, clear the value in database
-                    if (inputValue === "" || inputValue === null) {
-                      updateTaskValue(task.id, null);
-                      return;
-                    }
+                        // If empty, clear the value in database
+                        if (inputValue === "" || inputValue === null) {
+                          updateTaskValue(task.id, null);
+                          return;
+                        }
 
-                    const value = parseFloat(inputValue);
-                    if (!isNaN(value)) {
-                      updateTaskValue(task.id, value);
-                    }
-                  }}
-                  placeholder={getValidationHint(task.task_type)}
-                  className={`w-full p-2 border rounded-md text-sm focus:ring-2 focus:border-transparent ${
-                    task.actual_value &&
-                    !isValidValue(task.task_type, task.actual_value)
-                      ? "border-red-300 focus:ring-red-500 bg-red-50"
-                      : "border-gray-300 focus:ring-blue-500"
-                  }`}
-                />
-                <span className="text-sm text-gray-500 font-medium">
-                  {task.target_unit}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Goals Section */}
-      <div className="space-y-4">
-        <h4 className="text-md font-medium text-gray-800">🎯 Obiettivi</h4>
-        <div className="space-y-3">
-          {goalTasks.map((task) => (
-            <div key={task.id} className="flex items-center space-x-3">
-              <button
-                onClick={() => toggleTask(task.id)}
-                className={`w-6 h-6 rounded-full flex items-center justify-center text-sm shadow-sm transition-colors duration-200 ${
-                  task.completed
-                    ? "bg-gradient-to-br from-green-400 to-green-500 text-white"
-                    : "bg-gray-200/80 text-gray-400 hover:bg-gray-300"
-                }`}
-              >
-                {task.completed ? "✓" : ""}
-              </button>
-              <div className="flex items-center space-x-2 flex-1">
-                <span className="text-lg">{task.emoji}</span>
-                <div className="flex flex-col">
-                  <span
-                    className={
-                      task.completed ? "text-gray-900" : "text-gray-500"
-                    }
-                  >
-                    {task.name}
-                  </span>
-                  <span className="text-xs text-gray-500">
-                    {task.description}
-                  </span>
+                        const value = parseFloat(inputValue);
+                        if (!isNaN(value)) {
+                          updateTaskValue(task.id, value);
+                        }
+                      }}
+                      placeholder={getValidationHint(task.task_type)}
+                      className={`w-full p-2 border rounded-md text-sm focus:ring-2 focus:border-transparent ${
+                        task.actual_value &&
+                        !isValidValue(task.task_type, task.actual_value)
+                          ? "border-red-300 focus:ring-red-500 bg-red-50"
+                          : "border-gray-300 focus:ring-blue-500"
+                      }`}
+                    />
+                    <span className="text-sm text-gray-500 font-medium">
+                      {task.target_unit}
+                    </span>
+                  </div>
                 </div>
-              </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </div>
+          </div>
+
+          {/* Goals Section */}
+          <div className="space-y-4">
+            <h4 className="text-md font-medium text-gray-800">🎯 Obiettivi</h4>
+            <div className="space-y-3">
+              {goalTasks.map((task) => (
+                <div key={task.id} className="flex items-center space-x-3">
+                  <button
+                    onClick={() => toggleTask(task.id)}
+                    className={`w-6 h-6 rounded-full flex items-center justify-center text-sm shadow-sm transition-colors duration-200 ${
+                      task.completed
+                        ? "bg-gradient-to-br from-green-400 to-green-500 text-white"
+                        : "bg-gray-200/80 text-gray-400 hover:bg-gray-300"
+                    }`}
+                  >
+                    {task.completed ? "✓" : ""}
+                  </button>
+                  <div className="flex items-center space-x-2 flex-1">
+                    <span className="text-lg">{task.emoji}</span>
+                    <div className="flex flex-col">
+                      <span
+                        className={
+                          task.completed ? "text-gray-900" : "text-gray-500"
+                        }
+                      >
+                        {task.name}
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        {task.description}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };

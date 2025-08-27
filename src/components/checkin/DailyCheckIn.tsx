@@ -28,6 +28,7 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [isEditable, setIsEditable] = useState(false);
+  const [isExpanded, setIsExpanded] = useState<boolean>(true);
 
   // Formatta la data in modo leggibile
   const formattedDate = new Intl.DateTimeFormat("it-IT", {
@@ -450,54 +451,70 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">📋 Daily Check-In</h3>
-        <span className="text-sm text-gray-500">{formattedDate}</span>
-        {saving && (
-          <span className="text-xs text-blue-500 animate-pulse">
-            Salvando...
-          </span>
-        )}
-      </div>
-
-      <div className="space-y-3">
-        {tasks.map((task) => (
-          <div key={task.id} className="flex items-center space-x-3">
-            <button
-              onClick={() => toggleTask(task.id)}
-              disabled={!isEditable}
-              className={`w-6 h-6 rounded-full flex items-center justify-center text-sm shadow-sm transition-colors duration-200 ${
-                task.completed
-                  ? "bg-gradient-to-br from-green-400 to-green-500 text-white"
-                  : isEditable
-                  ? "bg-gray-200/80 text-gray-400 hover:bg-gray-300"
-                  : "bg-gray-100 text-gray-300 cursor-not-allowed"
-              }`}
-            >
-              {task.completed ? "✓" : ""}
-            </button>
-            <div className="flex items-center space-x-2 flex-1">
-              <span className="text-lg">{task.emoji}</span>
-              <div className="flex flex-col">
-                <span
-                  className={task.completed ? "text-gray-900" : "text-gray-500"}
-                >
-                  {task.name}
-                </span>
-                <span className="text-xs text-gray-500">
-                  {task.description}
-                </span>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {!isEditable && (
-        <div className="text-sm text-gray-500 text-center mt-4">
-          ℹ️ Tasks can only be modified on the same day or before 3:00 AM the
-          next day
+      <div
+        className="flex items-center justify-between cursor-pointer p-2 rounded-lg hover:bg-gray-50 transition-colors"
+        onClick={() => setIsExpanded(!isExpanded)}
+      >
+        <div className="flex items-center space-x-2">
+          <h3 className="text-lg font-semibold">📋 Daily Check-In</h3>
         </div>
+        <div className="flex items-center space-x-2">
+          <span className="text-sm text-gray-500">{formattedDate}</span>
+          {saving && (
+            <span className="text-xs text-blue-500 animate-pulse">
+              Salvando...
+            </span>
+          )}
+          <button className="text-gray-400 hover:text-gray-600 transition-colors">
+            <span className="text-lg">{isExpanded ? "🔽" : "▶️"}</span>
+          </button>
+        </div>
+      </div>
+
+      {isExpanded && (
+        <>
+          <div className="space-y-3">
+            {tasks.map((task) => (
+              <div key={task.id} className="flex items-center space-x-3">
+                <button
+                  onClick={() => toggleTask(task.id)}
+                  disabled={!isEditable}
+                  className={`w-6 h-6 rounded-full flex items-center justify-center text-sm shadow-sm transition-colors duration-200 ${
+                    task.completed
+                      ? "bg-gradient-to-br from-green-400 to-green-500 text-white"
+                      : isEditable
+                      ? "bg-gray-200/80 text-gray-400 hover:bg-gray-300"
+                      : "bg-gray-100 text-gray-300 cursor-not-allowed"
+                  }`}
+                >
+                  {task.completed ? "✓" : ""}
+                </button>
+                <div className="flex items-center space-x-2 flex-1">
+                  <span className="text-lg">{task.emoji}</span>
+                  <div className="flex flex-col">
+                    <span
+                      className={
+                        task.completed ? "text-gray-900" : "text-gray-500"
+                      }
+                    >
+                      {task.name}
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      {task.description}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {!isEditable && (
+            <div className="text-sm text-gray-500 text-center mt-4">
+              ℹ️ Tasks can only be modified on the same day or before 3:00 AM
+              the next day
+            </div>
+          )}
+        </>
       )}
     </div>
   );
