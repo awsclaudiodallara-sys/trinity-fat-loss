@@ -108,7 +108,7 @@ function App() {
         isInTrio,
         loading: false,
       });
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       setUserStatus({
         hasProfile: false,
@@ -388,7 +388,7 @@ function App() {
       {renderCurrentScreen()}
       {/* Development Navigation (remove in production) */}
       {process.env.NODE_ENV === "development" && (
-        <div className="fixed bottom-4 right-4 bg-white rounded-lg shadow-lg p-4 text-xs z-50">
+        <div className="fixed top-4 right-4 bg-white rounded-lg shadow-lg p-4 text-xs z-50">
           <div className="font-semibold mb-2 text-gray-700">
             Dev Navigation:
           </div>

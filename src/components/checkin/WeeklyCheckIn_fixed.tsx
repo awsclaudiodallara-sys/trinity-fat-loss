@@ -10,15 +10,10 @@ interface WeeklyTask {
   week_start: string;
   task_type: string;
   completed: boolean;
-  completion_date?: string | null;
-  actual_value?: number | null;
   target_value?: number | null;
+  actual_value?: number | null;
   target_unit?: string | null;
   notes?: string | null;
-  reminder_sent?: boolean;
-  deadline_warning_sent?: boolean;
-  created_at?: string;
-  updated_at?: string;
 }
 
 // UI enhancement interface
@@ -49,36 +44,6 @@ export const WeeklyCheckIn: React.FC<WeeklyCheckInProps> = () => {
   };
 
   const formattedWeekStart = getWeekStart();
-
-  // Validation function for measurement values
-  const isValidValue = (taskType: string, value: number): boolean => {
-    if (value <= 0) return false; // No negative or zero values
-
-    switch (taskType) {
-      case "weight_measurement":
-        return value >= 10 && value <= 300; // kg
-      case "waist_measurement":
-        return value >= 20 && value <= 500; // cm
-      case "neck_measurement":
-        return value >= 20 && value <= 200; // cm
-      default:
-        return true;
-    }
-  };
-
-  // Get validation range text for placeholders
-  const getValidationHint = (taskType: string): string => {
-    switch (taskType) {
-      case "weight_measurement":
-        return "es. 90 (10-300 kg)";
-      case "waist_measurement":
-        return "es. 95 (20-500 cm)";
-      case "neck_measurement":
-        return "es. 40 (20-200 cm)";
-      default:
-        return "";
-    }
-  };
 
   // Format week display
   const getWeekDisplay = () => {
@@ -130,15 +95,15 @@ export const WeeklyCheckIn: React.FC<WeeklyCheckInProps> = () => {
           hasValue: false,
         },
         strength_goal: {
-          name: "Esercizi Peso/Plank/Calisthenics",
+          name: "Esercizi Peso/Plank/Calisthenics Goal",
           emoji: "💪",
-          description: "Allenamento forza/plank/calisthenics",
+          description: "Obiettivo allenamento peso/plank/calisthenics",
           hasValue: false,
         },
         weekly_call: {
-          name: "Call Settimanale di Gruppo",
+          name: "Call Settimanale",
           emoji: "📞",
-          description: "Chiamata settimanale del trio",
+          description: "Chiamata settimanale di gruppo",
           hasValue: false,
         },
       };
@@ -240,32 +205,13 @@ export const WeeklyCheckIn: React.FC<WeeklyCheckInProps> = () => {
       },
     ];
 
-    console.log("📝 Inserting default tasks:", defaultTasks.length, "tasks");
-    console.log(
-      "📋 Tasks to insert:",
-      defaultTasks.map((t) => t.task_type)
-    );
-
     const { data, error } = await supabase
       .from("weekly_tasks")
-      .upsert(defaultTasks, {
-        onConflict: "user_id,week_start,task_type",
-        ignoreDuplicates: false,
-      })
+      .insert(defaultTasks)
       .select();
 
-    if (error) {
-      console.error("❌ Error upserting tasks:", error);
-      console.error(
-        "❌ Error details:",
-        error.message,
-        error.details,
-        error.hint
-      );
-      throw error;
-    }
+    if (error) throw error;
 
-    console.log("✅ Successfully upserted tasks:", data?.length || 0);
     return data || [];
   };
 
@@ -273,9 +219,6 @@ export const WeeklyCheckIn: React.FC<WeeklyCheckInProps> = () => {
     if (!user) return;
     setLoading(true);
     try {
-      console.log("🔍 Fetching weekly tasks for user:", user.id);
-      console.log("📅 Week start:", formattedWeekStart);
-
       // First, get the user's current_trio_id
       const { data: userProfile, error: userError } = await supabase
         .from("users")
@@ -284,12 +227,10 @@ export const WeeklyCheckIn: React.FC<WeeklyCheckInProps> = () => {
         .single();
 
       if (userError) {
-        console.error("❌ Error fetching user profile:", userError);
+        console.error("Error fetching user profile:", userError);
         setError("Failed to load user profile.");
         return;
       }
-
-      console.log("👤 User trio_id:", userProfile?.current_trio_id);
 
       const { data, error } = await supabase
         .from("weekly_tasks")
@@ -299,47 +240,21 @@ export const WeeklyCheckIn: React.FC<WeeklyCheckInProps> = () => {
 
       if (error) throw error;
 
-      console.log("📊 Fetched tasks from DB:", data);
-
       // If no data found, create new weekly records
       if (!data || data.length === 0) {
-        console.log("🆕 No tasks found, creating default tasks...");
         const newTasks = await createDefaultWeeklyTasks(
           user.id,
           userProfile?.current_trio_id || "",
           formattedWeekStart
         );
-        console.log("✅ Created tasks:", newTasks);
         const enrichedTasks = enrichTasksWithUIData(newTasks);
         setWeeklyTasks(enrichedTasks);
       } else {
-        console.log("📋 Using existing tasks:", data.length);
-        // Check if we have all 6 tasks, if not, delete and recreate
-        if (data.length < 6) {
-          console.log("⚠️ Incomplete tasks found, recreating...");
-          // Delete existing incomplete tasks
-          await supabase
-            .from("weekly_tasks")
-            .delete()
-            .eq("user_id", user.id)
-            .eq("week_start", formattedWeekStart);
-
-          // Create new complete set
-          const newTasks = await createDefaultWeeklyTasks(
-            user.id,
-            userProfile?.current_trio_id || "",
-            formattedWeekStart
-          );
-          console.log("🔄 Recreated tasks:", newTasks);
-          const enrichedTasks = enrichTasksWithUIData(newTasks);
-          setWeeklyTasks(enrichedTasks);
-        } else {
-          const enrichedTasks = enrichTasksWithUIData(data);
-          setWeeklyTasks(enrichedTasks);
-        }
+        const enrichedTasks = enrichTasksWithUIData(data);
+        setWeeklyTasks(enrichedTasks);
       }
     } catch (error) {
-      console.error("❌ Error fetching weekly tasks:", error);
+      console.error("Error fetching weekly tasks:", error);
       setError("Failed to load weekly check-in data.");
     } finally {
       setLoading(false);
@@ -350,52 +265,26 @@ export const WeeklyCheckIn: React.FC<WeeklyCheckInProps> = () => {
     fetchWeeklyTasks();
   }, [fetchWeeklyTasks]);
 
-  // Toggle task completion with special logic for measurements
+  // Toggle task completion
   const toggleTask = async (taskId: string) => {
     if (!user) return;
 
     const task = weeklyTasks.find((t) => t.id === taskId);
     if (!task) return;
 
-    // For measurements, check if there's a valid value before allowing completion
-    if (task.hasValue && !task.completed) {
-      if (
-        !task.actual_value ||
-        !isValidValue(task.task_type, task.actual_value)
-      ) {
-        return; // Don't allow checking if no value or invalid value
-      }
-    }
-
     setSaving(true);
 
     try {
-      const newCompleted = !task.completed;
-
-      // If unchecking a measurement, also clear the actual_value
-      const updateData: { completed: boolean; actual_value?: number | null } = {
-        completed: newCompleted,
-      };
-      if (task.hasValue && !newCompleted) {
-        updateData.actual_value = null;
-      }
-
       const { error } = await supabase
         .from("weekly_tasks")
-        .update(updateData)
+        .update({ completed: !task.completed })
         .eq("id", taskId);
 
       if (error) throw error;
 
       // Update UI
       const updatedTasks = weeklyTasks.map((t) =>
-        t.id === taskId
-          ? {
-              ...t,
-              completed: newCompleted,
-              ...(task.hasValue && !newCompleted ? { actual_value: null } : {}),
-            }
-          : t
+        t.id === taskId ? { ...t, completed: !t.completed } : t
       );
       setWeeklyTasks(updatedTasks);
     } catch (error) {
@@ -407,7 +296,7 @@ export const WeeklyCheckIn: React.FC<WeeklyCheckInProps> = () => {
   };
 
   // Update task value
-  const updateTaskValue = async (taskId: string, value: number | null) => {
+  const updateTaskValue = async (taskId: string, value: number) => {
     if (!user) return;
 
     setSaving(true);
@@ -481,74 +370,32 @@ export const WeeklyCheckIn: React.FC<WeeklyCheckInProps> = () => {
         <h4 className="text-md font-medium text-gray-800">📏 Misurazioni</h4>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {measurementTasks.map((task) => (
-            <div key={task.id} className="space-y-3 p-4 bg-gray-50 rounded-lg">
-              {/* Task completion checkbox */}
-              <div className="flex items-center justify-between">
-                <label className="flex items-center space-x-2">
-                  <span className="text-lg">{task.emoji}</span>
-                  <span className="text-sm font-medium text-gray-700">
-                    {task.name}
-                  </span>
-                </label>
-                <button
-                  onClick={() => toggleTask(task.id)}
-                  disabled={
-                    task.hasValue &&
-                    (!task.actual_value ||
-                      !isValidValue(task.task_type, task.actual_value)) &&
-                    !task.completed
-                  }
-                  className={`w-5 h-5 rounded flex items-center justify-center text-xs shadow-sm transition-colors duration-200 ${
-                    task.completed
-                      ? "bg-gradient-to-br from-green-400 to-green-500 text-white"
-                      : task.hasValue &&
-                        (!task.actual_value ||
-                          !isValidValue(task.task_type, task.actual_value))
-                      ? "bg-gray-100 text-gray-300 cursor-not-allowed"
-                      : "bg-gray-200/80 text-gray-400 hover:bg-gray-300 cursor-pointer"
-                  }`}
-                  title={
-                    task.hasValue &&
-                    (!task.actual_value ||
-                      !isValidValue(task.task_type, task.actual_value)) &&
-                    !task.completed
-                      ? "Inserisci un valore valido per completare"
-                      : ""
-                  }
-                >
-                  {task.completed ? "✓" : ""}
-                </button>
-              </div>
-
-              {/* Value input */}
+            <div key={task.id} className="space-y-2">
+              <label className="flex items-center space-x-2">
+                <span className="text-lg">{task.emoji}</span>
+                <span className="text-sm font-medium text-gray-700">
+                  {task.name}
+                </span>
+              </label>
               <div className="flex items-center space-x-2">
                 <input
                   type="number"
                   step="0.1"
                   value={task.actual_value || ""}
                   onChange={(e) => {
-                    const inputValue = e.target.value;
-
-                    // If empty, clear the value in database
-                    if (inputValue === "" || inputValue === null) {
-                      updateTaskValue(task.id, null);
-                      return;
-                    }
-
-                    const value = parseFloat(inputValue);
+                    const value = parseFloat(e.target.value);
                     if (!isNaN(value)) {
                       updateTaskValue(task.id, value);
                     }
                   }}
-                  placeholder={getValidationHint(task.task_type)}
-                  className={`w-full p-2 border rounded-md text-sm focus:ring-2 focus:border-transparent ${
-                    task.actual_value &&
-                    !isValidValue(task.task_type, task.actual_value)
-                      ? "border-red-300 focus:ring-red-500 bg-red-50"
-                      : "border-gray-300 focus:ring-blue-500"
-                  }`}
+                  placeholder={
+                    task.task_type === "weight_measurement"
+                      ? "es. 95.8"
+                      : "es. 96.1"
+                  }
+                  className="w-full p-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
-                <span className="text-sm text-gray-500 font-medium">
+                <span className="text-sm text-gray-500">
                   {task.target_unit}
                 </span>
               </div>
