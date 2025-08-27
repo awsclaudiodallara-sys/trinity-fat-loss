@@ -388,7 +388,7 @@ function App() {
       {renderCurrentScreen()}
       {/* Development Navigation (remove in production) */}
       {process.env.NODE_ENV === "development" && (
-        <div className="fixed top-4 right-4 bg-white rounded-lg shadow-lg p-4 text-xs z-50">
+        <div className="fixed top-1/2 right-4 transform -translate-y-1/2 bg-white rounded-lg shadow-lg p-4 text-xs z-50">
           <div className="font-semibold mb-2 text-gray-700">
             Dev Navigation:
           </div>

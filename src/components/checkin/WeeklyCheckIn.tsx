@@ -51,6 +51,19 @@ export const WeeklyCheckIn: React.FC<WeeklyCheckInProps> = () => {
 
   const formattedWeekStart = getWeekStart();
 
+  // Check if the week is still editable (until Monday 3:00 AM of next week)
+  const isWeekEditable = (weekStart: string): boolean => {
+    const weekStartDate = new Date(weekStart);
+    const nextMonday = new Date(weekStartDate);
+    nextMonday.setDate(weekStartDate.getDate() + 7); // Next Monday
+    nextMonday.setHours(3, 0, 0, 0); // 3:00 AM
+
+    const now = new Date();
+    return now <= nextMonday;
+  };
+
+  const [isEditable, setIsEditable] = useState<boolean>(true);
+
   // Validation function for measurement values
   const isValidValue = (taskType: string, value: number): boolean => {
     if (value <= 0) return false; // No negative or zero values
@@ -339,6 +352,9 @@ export const WeeklyCheckIn: React.FC<WeeklyCheckInProps> = () => {
           setWeeklyTasks(enrichedTasks);
         }
       }
+
+      // Update editable state based on current week
+      setIsEditable(isWeekEditable(formattedWeekStart));
     } catch (error) {
       console.error("❌ Error fetching weekly tasks:", error);
       setError("Failed to load weekly check-in data.");
@@ -353,7 +369,7 @@ export const WeeklyCheckIn: React.FC<WeeklyCheckInProps> = () => {
 
   // Toggle task completion with special logic for measurements
   const toggleTask = async (taskId: string) => {
-    if (!user) return;
+    if (!user || !isEditable) return;
 
     const task = weeklyTasks.find((t) => t.id === taskId);
     if (!task) return;
@@ -409,7 +425,7 @@ export const WeeklyCheckIn: React.FC<WeeklyCheckInProps> = () => {
 
   // Update task value
   const updateTaskValue = async (taskId: string, value: number | null) => {
-    if (!user) return;
+    if (!user || !isEditable) return;
 
     setSaving(true);
 
@@ -513,14 +529,17 @@ export const WeeklyCheckIn: React.FC<WeeklyCheckInProps> = () => {
                     <button
                       onClick={() => toggleTask(task.id)}
                       disabled={
-                        task.hasValue &&
-                        (!task.actual_value ||
-                          !isValidValue(task.task_type, task.actual_value)) &&
-                        !task.completed
+                        !isEditable ||
+                        (task.hasValue &&
+                          (!task.actual_value ||
+                            !isValidValue(task.task_type, task.actual_value)) &&
+                          !task.completed)
                       }
                       className={`w-5 h-5 rounded flex items-center justify-center text-xs shadow-sm transition-colors duration-200 ${
                         task.completed
                           ? "bg-gradient-to-br from-green-400 to-green-500 text-white"
+                          : !isEditable
+                          ? "bg-gray-100 text-gray-300 cursor-not-allowed"
                           : task.hasValue &&
                             (!task.actual_value ||
                               !isValidValue(task.task_type, task.actual_value))
@@ -528,10 +547,15 @@ export const WeeklyCheckIn: React.FC<WeeklyCheckInProps> = () => {
                           : "bg-gray-200/80 text-gray-400 hover:bg-gray-300 cursor-pointer"
                       }`}
                       title={
-                        task.hasValue &&
-                        (!task.actual_value ||
-                          !isValidValue(task.task_type, task.actual_value)) &&
-                        !task.completed
+                        !isEditable
+                          ? "Week is no longer editable (cutoff passed)"
+                          : task.hasValue &&
+                            (!task.actual_value ||
+                              !isValidValue(
+                                task.task_type,
+                                task.actual_value
+                              )) &&
+                            !task.completed
                           ? "Inserisci un valore valido per completare"
                           : ""
                       }
@@ -546,6 +570,7 @@ export const WeeklyCheckIn: React.FC<WeeklyCheckInProps> = () => {
                       type="number"
                       step="0.1"
                       value={task.actual_value || ""}
+                      disabled={!isEditable}
                       onChange={(e) => {
                         const inputValue = e.target.value;
 
@@ -561,9 +586,11 @@ export const WeeklyCheckIn: React.FC<WeeklyCheckInProps> = () => {
                         }
                       }}
                       placeholder={getValidationHint(task.task_type)}
-                      className={`w-full p-2 border rounded-md text-sm focus:ring-2 focus:border-transparent ${
-                        task.actual_value &&
-                        !isValidValue(task.task_type, task.actual_value)
+                      className={`w-full p-2 border rounded-md text-sm focus:ring-2 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed ${
+                        !isEditable
+                          ? "border-gray-200 text-gray-500"
+                          : task.actual_value &&
+                            !isValidValue(task.task_type, task.actual_value)
                           ? "border-red-300 focus:ring-red-500 bg-red-50"
                           : "border-gray-300 focus:ring-blue-500"
                       }`}
@@ -585,11 +612,19 @@ export const WeeklyCheckIn: React.FC<WeeklyCheckInProps> = () => {
                 <div key={task.id} className="flex items-center space-x-3">
                   <button
                     onClick={() => toggleTask(task.id)}
+                    disabled={!isEditable}
                     className={`w-6 h-6 rounded-full flex items-center justify-center text-sm shadow-sm transition-colors duration-200 ${
                       task.completed
                         ? "bg-gradient-to-br from-green-400 to-green-500 text-white"
-                        : "bg-gray-200/80 text-gray-400 hover:bg-gray-300"
+                        : !isEditable
+                        ? "bg-gray-100 text-gray-300 cursor-not-allowed"
+                        : "bg-gray-200/80 text-gray-400 hover:bg-gray-300 cursor-pointer"
                     }`}
+                    title={
+                      !isEditable
+                        ? "Week is no longer editable (cutoff passed)"
+                        : ""
+                    }
                   >
                     {task.completed ? "✓" : ""}
                   </button>
@@ -612,6 +647,14 @@ export const WeeklyCheckIn: React.FC<WeeklyCheckInProps> = () => {
               ))}
             </div>
           </div>
+
+          {/* Editable status message */}
+          {!isEditable && (
+            <div className="text-sm text-gray-500 text-center mt-4 p-3 bg-gray-50 rounded-lg border">
+              ℹ️ Weekly tasks can only be modified until Monday 3:00 AM of the
+              following week
+            </div>
+          )}
         </>
       )}
     </div>
