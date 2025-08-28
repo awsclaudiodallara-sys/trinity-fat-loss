@@ -21,7 +21,7 @@ export const ChatPreview: React.FC<ChatPreviewProps> = ({
   useEffect(() => {
     // Debug: log dei parametri ricevuti
     console.log(
-      "ChatPreview - trioId:",
+      "🔍 ChatPreview INIT - trioId:",
       trioId,
       "currentUserId:",
       currentUserId
@@ -30,72 +30,42 @@ export const ChatPreview: React.FC<ChatPreviewProps> = ({
     // Carica i messaggi iniziali
     const loadMessages = async () => {
       try {
-        console.log("ChatPreview - Loading messages for trio:", trioId);
+        console.log("🔍 ChatPreview - Loading messages for trio:", trioId);
 
-        // Prima prova con l'ID passato
-        let messages = await trinityChatService.getMessages(trioId, 3);
+        // Usa solo il trio_id reale passato come parametro
+        const messages = await trinityChatService.getMessages(trioId, 50);
+        console.log(
+          "🔍 ChatPreview - Messages for",
+          trioId,
+          ":",
+          messages.length
+        );
 
-        // Se non trova messaggi, prova con l'ID di default usato nella chat
-        if (messages.length === 0) {
-          console.log(
-            "ChatPreview - No messages for trioId, trying default-trio-id"
-          );
-          messages = await trinityChatService.getMessages("default-trio-id", 3);
-        }
+        console.log("🔍 ChatPreview - Final messages loaded:", messages);
+        setRecentMessages(messages.slice(-3).reverse()); // Ultimi 3 messaggi in ordine inverso per display
 
-        console.log("ChatPreview - Loaded messages:", messages);
-        setRecentMessages(messages.slice(-3)); // Ultimi 3 messaggi
-
+        // Ottieni il contatore non letti
         if (currentUserId) {
-          // Usa l'ID che ha effettivamente messaggi
-          const actualTrioId =
-            messages.length > 0 ? messages[0].trio_id : trioId;
-          const unread = await trinityChatService.getUnreadCount(
-            actualTrioId,
-            currentUserId
-          );
-          console.log("ChatPreview - Unread count:", unread);
-          setUnreadCount(unread);
+          try {
+            const unread = await trinityChatService.getUnreadCount(
+              trioId,
+              currentUserId
+            );
+            console.log("ChatPreview - Unread count:", unread);
+            setUnreadCount(unread);
+          } catch (unreadError) {
+            console.warn(
+              "ChatPreview - Could not get unread count:",
+              unreadError
+            );
+            setUnreadCount(0);
+          }
         }
       } catch (error) {
         console.error("Error loading messages:", error);
-        // Fallback ai dati mock in caso di errore
-        console.warn("ChatPreview - Using fallback mock data");
-        const mockMessages: ChatMessage[] = [
-          {
-            id: "1",
-            trio_id: trioId,
-            user_id: "user1",
-            user_name: "Marco",
-            message: "Ciao a tutti! Come va l'allenamento oggi?",
-            created_at: new Date(Date.now() - 300000).toISOString(),
-            updated_at: new Date(Date.now() - 300000).toISOString(),
-            message_type: "text",
-          },
-          {
-            id: "2",
-            trio_id: trioId,
-            user_id: "user2",
-            user_name: "Giulia",
-            message:
-              "Tutto bene! Ho appena finito la mia sessione di cardio 💪",
-            created_at: new Date(Date.now() - 900000).toISOString(),
-            updated_at: new Date(Date.now() - 900000).toISOString(),
-            message_type: "text",
-          },
-          {
-            id: "3",
-            trio_id: trioId,
-            user_id: "demo-user",
-            user_name: "Tu",
-            message: "Perfetto! Anch'io sto per iniziare 🔥",
-            created_at: new Date(Date.now() - 1200000).toISOString(),
-            updated_at: new Date(Date.now() - 1200000).toISOString(),
-            message_type: "text",
-          },
-        ];
-        setRecentMessages(mockMessages);
-        setUnreadCount(1);
+        // In caso di errore, lascia vuoto invece di mostrare dati fake
+        setRecentMessages([]);
+        setUnreadCount(0);
       } finally {
         setIsLoading(false);
       }
@@ -103,14 +73,15 @@ export const ChatPreview: React.FC<ChatPreviewProps> = ({
 
     loadMessages();
 
-    // Sottoscrizione ai nuovi messaggi - usa l'ID di default se il trio è vuoto
-    const subscriptionTrioId = trioId || "default-trio-id";
+    // Sottoscrizione ai nuovi messaggi
+    console.log("🔍 ChatPreview - Subscribing to:", trioId);
     const channel = trinityChatService.subscribeToMessages(
-      subscriptionTrioId,
+      trioId,
       (newMessage) => {
+        console.log("🔍 ChatPreview - New message received:", newMessage);
         setRecentMessages((prev) => {
           const updated = [...prev, newMessage];
-          return updated.slice(-3); // Mantieni solo gli ultimi 3
+          return updated.slice(-3).reverse(); // Mantieni solo gli ultimi 3 in ordine inverso
         });
 
         // Aggiorna contatore non letti se il messaggio non è dell'utente corrente
@@ -189,30 +160,33 @@ export const ChatPreview: React.FC<ChatPreviewProps> = ({
       </div>
 
       <div className="space-y-3 mb-4">
-        {recentMessages.slice(0, 3).map((message) => (
-          <div key={message.id} className="border-l-2 border-gray-200 pl-3">
-            <div className="flex items-start space-x-2">
-              <div className="flex-1">
-                <div className="flex items-center space-x-2 mb-1">
-                  <span className="font-medium text-sm text-gray-800">
-                    {message.user_name}
-                  </span>
-                  <span className="text-xs text-gray-500">
-                    {formatTimestamp(message.created_at)}
-                  </span>
-                  {message.message_type !== "text" && (
-                    <span className="text-xs">
-                      {getMessageIcon(message.message_type)}
+        {recentMessages
+          .slice()
+          .reverse()
+          .map((message) => (
+            <div key={message.id} className="border-l-2 border-gray-200 pl-3">
+              <div className="flex items-start space-x-2">
+                <div className="flex-1">
+                  <div className="flex items-center space-x-2 mb-1">
+                    <span className="font-medium text-sm text-gray-800">
+                      {message.user_name}
                     </span>
-                  )}
+                    <span className="text-xs text-gray-500">
+                      {formatTimestamp(message.created_at)}
+                    </span>
+                    {message.message_type !== "text" && (
+                      <span className="text-xs">
+                        {getMessageIcon(message.message_type)}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm text-gray-600 line-clamp-2">
+                    {message.message}
+                  </p>
                 </div>
-                <p className="text-sm text-gray-600 line-clamp-2">
-                  {message.message}
-                </p>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
       </div>
 
       <div className="flex items-center space-x-2">
@@ -230,7 +204,9 @@ export const ChatPreview: React.FC<ChatPreviewProps> = ({
       <div className="mt-3 text-xs text-gray-500 text-center">
         Last activity:{" "}
         {recentMessages.length > 0
-          ? formatTimestamp(recentMessages[0].created_at)
+          ? formatTimestamp(
+              recentMessages[recentMessages.length - 1].created_at
+            )
           : "No messages"}
       </div>
     </div>

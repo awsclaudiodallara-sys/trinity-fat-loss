@@ -72,6 +72,46 @@ class TrinityChatService implements ChatService {
         throw new Error("User not authenticated");
       }
 
+      // Verifica che l'utente esista in user_profiles
+      const { data: userProfile, error: userError } = await supabase
+        .from("user_profiles")
+        .select("id, name, email")
+        .eq("id", userId)
+        .single();
+
+      if (userError || !userProfile) {
+        console.error("🚨 User not found in user_profiles:", userError);
+        console.error("🔧 User ID:", userId);
+
+        // Tenta di creare il profilo utente dai dati auth
+        const { data: authUser } = await supabase.auth.getUser();
+        if (authUser.user) {
+          console.log("🔧 Creating user profile from auth data...");
+          const { error: createError } = await supabase
+            .from("user_profiles")
+            .insert({
+              id: userId,
+              name:
+                authUser.user.user_metadata?.name ||
+                authUser.user.email ||
+                "Unknown User",
+              email: authUser.user.email || "",
+              avatar_url: authUser.user.user_metadata?.avatar_url || null,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            });
+
+          if (createError) {
+            console.error("🚨 Failed to create user profile:", createError);
+            return null;
+          }
+          console.log("✅ User profile created successfully");
+        } else {
+          console.error("🚨 Cannot create user profile: no auth user data");
+          return null;
+        }
+      }
+
       const { data, error } = await supabase
         .from("trinity_chat_messages")
         .insert({
@@ -91,6 +131,17 @@ class TrinityChatService implements ChatService {
 
       if (error) {
         console.error("Error sending message:", error);
+
+        // Gestione specifica degli errori
+        if (error.code === "23503") {
+          console.error(
+            "🚨 FOREIGN KEY CONSTRAINT: User not found in user_profiles table"
+          );
+          console.error(
+            "🔧 Please ensure the user exists in user_profiles before sending messages"
+          );
+        }
+
         return null;
       }
 

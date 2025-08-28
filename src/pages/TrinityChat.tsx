@@ -24,7 +24,7 @@ interface TrinityChatProps {
 }
 
 export const TrinityChat: React.FC<TrinityChatProps> = ({
-  trioId = "default-trio-id",
+  trioId = "3b2b8e7d-0712-4007-9221-36be8b1835d9", // ID del trio reale dal database
   onGoBack,
 }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -233,6 +233,13 @@ export const TrinityChat: React.FC<TrinityChatProps> = ({
       try {
         const chatMessages = await trinityChatService.getMessages(trioId, 50);
         setMessages(chatMessages);
+
+        // Marca tutti i messaggi come letti quando entra nella chat
+        const userId = await trinityChatService.getCurrentUserId();
+        if (userId) {
+          await trinityChatService.markMessagesAsRead(trioId, userId);
+          console.log("🔍 Messages marked as read for user:", userId);
+        }
       } catch (error) {
         console.error("Error loading messages:", error);
         // Fallback ai dati mock

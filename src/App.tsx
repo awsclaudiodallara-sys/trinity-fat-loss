@@ -412,7 +412,7 @@ function App() {
       case "trinity-chat":
         return (
           <TrinityChat
-            trioId="demo-trio-id"
+            trioId="3b2b8e7d-0712-4007-9221-36be8b1835d9"
             onGoBack={() => setCurrentScreen("dashboard")}
           />
         );
