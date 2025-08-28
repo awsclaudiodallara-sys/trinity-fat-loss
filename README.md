@@ -145,9 +145,147 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 ## 🚧 ROADMAP - Sviluppi Pianificati
 
+### **📋 MACROCATEGORIE DI LAVORO - Panoramica Completa**
+
+#### **🔥 Priorità ALTA (Q4 2025)**
+
+1. **📹 Video Call System** - Backend integration, scheduling, voting
+2. **👑 Sistema Premium & Monetization** - Freemium, subscriptions, AdMob
+3. **🛡️ Sistema Moderazione & Gestione Gruppi** - Report, ban, sostituzione membri inattivi
+4. **🏆 Sistema Achievements & Gamification** - Badge, punti, leaderboard
+5. **📊 Analytics Dashboard di Gruppo** - Metriche trio e progressi reali
+6. **🔔 Sistema Notifiche Completo** - Email, push, smart logic
+7. **💬 Chat System Advanced** - File upload, chat settings, customization
+
+#### **📅 Priorità MEDIA (Q1 2026)**
+
+7. **🎨 UI/UX Improvements** - Mobile experience, PWA optimization
+8. **🔧 Performance & Infrastructure** - Caching, offline support, ottimizzazioni
+
+#### **🚀 Priorità BASSA (Q2+ 2026)**
+
+9. **🤖 AI & Analytics Avanzate** - Predictive analytics, insights, recommendations
+10. **🍎 Platform Expansion** - iOS release, Apple Sign-In, multi-provider auth
+11. **📱 Mobile Native Features** - Biometrics, haptic feedback, camera integration
+12. **🌐 Scale & Business** - Advanced features, global leaderboard, enterprise
+
+---
+
+### **🎉 COMPLETATI RECENTEMENTE (Agosto 2025)**
+
+#### **✅ Chat System Completo**
+
+- [✅] **Chat Preview Widget Funzionale**
+
+  - [✅] Real-time sync tra chat e preview dashboard
+  - [✅] Contatore messaggi non letti con reset automatico
+  - [✅] Integrazione Supabase WebSocket per aggiornamenti live
+  - [✅] Eliminazione demo data, solo dati reali dal database
+
+- [✅] **Chat Backend Integration Completa**
+
+  - [✅] Supabase Realtime per messaggi real-time ⚡
+  - [✅] Database schema: trinity_chat_messages + trinity_chat_read_status
+  - [✅] API completa send/receive/history messaggi
+  - [✅] RLS policies per sicurezza multi-tenant
+  - [✅] Sistema emoji picker funzionante 😊
+
+- [✅] **Chat Full-Screen Ottimizzata**
+  - [✅] Pagina TrinityChat.tsx completamente funzionale
+  - [✅] Real-time messaging tra trio members
+  - [✅] Auto-scroll ai nuovi messaggi
+  - [✅] Gestione user profiles e foreign key constraints
+  - [✅] Design mobile-first responsive
+
+#### **✅ Database Schema & Infrastructure**
+
+- [✅] **Pulizia Database Errori**
+  - [✅] Risolti errori 400/404 caricamento dashboard
+  - [✅] Fix tabelle user_body_measurements e user_body_stats
+  - [✅] Allineamento nomi colonne con struttura database esistente
+  - [✅] RLS policies configurate correttamente
+
 ### **🔥 Priorità Immediata (Settimana Corrente)**
 
-#### **🏆 Sistema Achievements & Gamification**
+#### **📹 Video Call System - PRIORITÀ #1**
+
+- [ ] **Video Call Backend Integration**
+
+  - [ ] Integrazione WebRTC per chiamate peer-to-peer
+  - [ ] Sistema scheduling con database trio_video_calls
+  - [ ] API per create/join/leave video sessions
+  - [ ] Recording delle chiamate (opzionale premium)
+
+- [ ] **📅 Calendario & Voting System**
+  - [ ] Sistema di booking per videocall intelligente
+  - [ ] Interface per proporre slot orari settimana prossima
+  - [ ] Sistema voting democratico tra i 3 membri
+  - [ ] Scelta data/ora coordinata tra utenti
+  - [ ] Auto-confirmation quando raggiunto consenso maggioranza
+  - [ ] Fallback automatico se no consenso (slot predefiniti)
+  - [ ] Promemoria automatici (24h, 1h prima)
+
+#### **👑 Sistema Premium & Monetization - PRIORITÀ #2**
+
+- [ ] **Freemium Model**
+
+  - [ ] Piano gratuito vs premium con features differentiate
+  - [ ] Features premium (grafici avanzati, coach AI, analytics gruppo)
+  - [ ] Unlimited storage foto/documenti per premium
+  - [ ] Advanced achievements e leaderboard globali
+  - [ ] Priority customer support
+
+- [ ] **Payment & Subscriptions**
+
+  - [ ] Sistema di pagamento (Stripe/PayPal integration)
+  - [ ] Gestione abbonamenti mensili/annuali
+  - [ ] Trial period gratuito premium (7-14 giorni)
+  - [ ] Upgrade/downgrade seamless
+  - [ ] Invoice e receipt management
+
+- [ ] **📱 AdMob Integration**
+  - [ ] Banner ads per utenti free (setup già pronto)
+  - [ ] Interstitial ads tra sessioni (non invasivo)
+  - [ ] Reward ads per features bonus (extra achievements, etc.)
+  - [ ] Video ads per unlock temporary premium features
+  - [ ] Ottimizzazione revenue con A/B testing
+
+#### **🛡️ Sistema Moderazione & Gestione Gruppi - PRIORITÀ #3**
+
+- [ ] **Sistema Report & Segnalazioni**
+
+  - [ ] Interface per segnalare comportamenti inappropriati
+  - [ ] Report categories: violenza, molestie, contenuti espliciti, spam
+  - [ ] Sistema voting interno al trio per segnalazioni maggioritarie
+  - [ ] Upload screenshot/proof per supportare le segnalazioni
+  - [ ] Storico segnalazioni per pattern behavior detection
+
+- [ ] **Admin Dashboard & Moderazione**
+
+  - [ ] Dashboard admin per review segnalazioni pendenti
+  - [ ] Sistema di ban temporaneo/permanente utenti
+  - [ ] Warning system (3 strikes prima del ban)
+  - [ ] Appeal process per utenti bannati
+  - [ ] Logging completo delle azioni di moderazione
+  - [ ] Analytics sui pattern di comportamento problematici
+
+- [ ] **Gestione Inattività & Sostituzione Membri**
+
+  - [ ] **Detection automatica inattività** (7-14 giorni senza login/interazioni)
+  - [ ] **Voting system per rimozione membro inattivo** (maggioranza 2/3)
+  - [ ] **Interface "Richiedi nuovo membro"** per i duo rimasti
+  - [ ] **Re-matching automatico** per trovare sostituto compatibile
+  - [ ] **Transizione smooth** - storico chat preservato, onboarding nuovo membro
+  - [ ] **Penalità inattività** - cooldown period prima di entrare in nuovo trio
+
+- [ ] **Trio Management & Stability**
+  - [ ] Dashboard salute del gruppo (engagement score, interaction rate)
+  - [ ] Early warning system per gruppi a rischio dissoluzione
+  - [ ] Mediazione automatica per conflitti (AI-powered suggestions)
+  - [ ] Exit graceful process - uscita volontaria dal trio
+  - [ ] Re-match preferences - criteri per trovare sostituti ideali
+
+#### **🏆 Sistema Achievements & Gamification - PRIORITÀ #4**
 
 - [ ] **Logiche Achievements Automatiche**
 
@@ -173,7 +311,7 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
   - [ ] **IMPORTANTE**: Le attuali analytics user singolo sono solo un MOCK/DEMO
   - [ ] Sostituire BodyCompositionAnalyticsDemo con sistema funzionante
-  - [ ] Integrare dati reali da database Supabase (body_measurements table)
+  - [ ] Integrare dati reali da database Supabase (user_body_measurements table)
   - [ ] Collegare progress tracking con dati check-in settimanali reali
   - [ ] Rimuovere tutti i mock data e implementare query database reali
 
@@ -190,6 +328,27 @@ Distributed under the MIT License. See `LICENSE` for more information.
   - [ ] Indice di supporto reciproco (messaggi incoraggianti, reazioni)
   - [ ] Goal setting collettivi con progress condiviso
   - [ ] Weekly/monthly trio report automatici
+
+### **🎨 UI/UX Improvements & Features**
+
+#### **💬 Chat Experience**
+
+- [ ] **Chat Settings & Customization** ⚙️
+  - [ ] Chat settings panel (notifications, themes, privacy)
+  - [ ] Message formatting options (bold, italic, links)
+  - [ ] Chat themes personalizabili (dark mode, colors)
+  - [ ] Export chat history feature
+  - [ ] Message search & filtering
+  - [ ] Do not disturb per chat
+  - **Nota**: Settings button temporaneamente rimosso dalla chat - da implementare quando necessario
+
+#### **📱 Mobile Experience**
+
+- [ ] **Progressive Web App Optimization**
+  - [ ] Offline support con cache intelligente
+  - [ ] Background sync per messaggi
+  - [ ] App shortcuts e quick actions
+  - [ ] Installation prompts migliorati
 
 ### **🔔 Sistema Notifiche Completo (Priorità Alta)**
 
@@ -242,11 +401,12 @@ Distributed under the MIT License. See `LICENSE` for more information.
   - [✅] Sistema input con emoji e attachment buttons
   - [✅] Responsive design per mobile e desktop
 
-- [ ] **Chat Backend Integration**
-  - [ ] Integrazione Supabase Realtime per messaggi real-time
-  - [ ] Database table: trinity_chat_messages
-  - [ ] API per send/receive/history messaggi
-  - [ ] Push notifications per nuovi messaggi
+- [✅] **Chat Backend Integration COMPLETATA**
+  - [✅] Integrazione Supabase Realtime per messaggi real-time ⚡
+  - [✅] Database table: trinity_chat_messages + trinity_chat_read_status
+  - [✅] API per send/receive/history messaggi
+  - [✅] Sistema emoji picker e real-time sync
+  - [ ] Push notifications per nuovi messaggi (prossimo step)
   - [ ] File upload per sharing foto progress
 
 #### **📹 Video Chat Settimanale & Scheduling**
@@ -290,33 +450,7 @@ Distributed under the MIT License. See `LICENSE` for more information.
   - [ ] Post-call summary automatico con action items
   - [ ] Analytics partecipazione e engagement video call
 
-### **� Monetization & Business (Priorità Media-Bassa)**
-
-#### **👑 Sistema Premium**
-
-- [ ] **Freemium Model**
-
-  - [ ] Piano gratuito vs premium con features differentiate
-  - [ ] Features premium (grafici avanzati, coach AI, analytics gruppo)
-  - [ ] Unlimited storage foto/documenti per premium
-  - [ ] Advanced achievements e leaderboard globali
-  - [ ] Priority customer support
-
-- [ ] **Payment & Subscriptions**
-  - [ ] Sistema di pagamento (Stripe/PayPal integration)
-  - [ ] Gestione abbonamenti mensili/annuali
-  - [ ] Trial period gratuito premium (7-14 giorni)
-  - [ ] Upgrade/downgrade seamless
-  - [ ] Invoice e receipt management
-
-#### **📱 AdMob Integration**
-
-- [ ] **Ads Strategy per Free Users**
-  - [ ] Banner ads per utenti free (setup già pronto)
-  - [ ] Interstitial ads tra sessioni (non invasivo)
-  - [ ] Reward ads per features bonus (extra achievements, etc.)
-  - [ ] Video ads per unlock temporary premium features
-  - [ ] Ottimizzazione revenue con A/B testing
+### **� Ottimizzazioni Tecniche (Priorità Media)**
 
 #### **🍎 Auth Provider Aggiuntivi**
 
@@ -326,7 +460,7 @@ Distributed under the MIT License. See `LICENSE` for more information.
   - [ ] Microsoft/LinkedIn (business users)
   - [ ] Enhanced profile sync across providers
 
-### **🔧 Ottimizzazioni Tecniche (Priorità Bassa)**
+### **🔧 Performance & Infrastructure (Priorità Bassa)**
 
 #### **Performance & Mobile**
 
@@ -363,19 +497,21 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 - **Autenticazione**: 100% ✅
 - **Matching System**: 95% ✅
+- **Chat System**: 90% ✅ (completato backend, manca solo file upload)
 - **Body Composition Analytics**: 80% 🚧
 - **Dashboard**: 60% 🚧
-- **Achievements System**: 40% 🚧
-- **Chat System**: 0% ❌
-- **Video Call**: 0% ❌
+- **Video Call**: 0% ❌ (PRIORITÀ #1)
+- **Premium/AdMob**: 0% ❌ (PRIORITÀ #2)
+- **🛡️ Moderazione & Gestione Gruppi**: 0% ❌ (PRIORITÀ #3 - CRITICO per sicurezza)
+- **Achievements System**: 40% 🚧 (PRIORITÀ #4)
 - **Notifications**: 10% ❌
-- **Premium/AdMob**: 0% ❌
+- **Performance**: 0% ❌
 
-#### **Timeline Roadmap**
+#### **Timeline Roadmap AGGIORNATA**
 
-- **Q4 2025**: Achievements completi, Analytics gruppo, Chat testuale
-- **Q1 2026**: Video call, Notifiche complete, Sistema premium MVP
-- **Q2 2026**: AdMob optimization, AI insights, Mobile enhancements
+- **Q4 2025**: Video call completo, Sistema premium MVP, Achievements base
+- **Q1 2026**: Analytics gruppo avanzati, Notifiche complete, AdMob optimization
+- **Q2 2026**: AI insights, Mobile enhancements, Performance optimization
 - **Q3 2026**: iOS release, Advanced features, Scale optimization
 
 ---

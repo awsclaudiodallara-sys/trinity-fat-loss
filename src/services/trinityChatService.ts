@@ -254,8 +254,10 @@ class TrinityChatService implements ChatService {
 
   async markMessagesAsRead(trioId: string, userId: string): Promise<void> {
     try {
+      console.log("🔄 markMessagesAsRead - Starting...", { trioId, userId });
+
       // Ottieni l'ultimo messaggio del trio
-      const { data: lastMessage } = await supabase
+      const { data: lastMessage, error: messageError } = await supabase
         .from("trinity_chat_messages")
         .select("id")
         .eq("trio_id", trioId)
@@ -263,20 +265,47 @@ class TrinityChatService implements ChatService {
         .limit(1)
         .single();
 
-      if (!lastMessage) return;
+      if (messageError) {
+        console.error(
+          "❌ markMessagesAsRead - Error fetching last message:",
+          messageError
+        );
+        return;
+      }
+
+      if (!lastMessage) {
+        console.log(
+          "⚠️ markMessagesAsRead - No messages found for trio:",
+          trioId
+        );
+        return;
+      }
+
+      console.log("📝 markMessagesAsRead - Last message ID:", lastMessage.id);
 
       // Marca come letto
-      await supabase.from("trinity_chat_read_status").upsert(
-        {
-          message_id: lastMessage.id,
-          user_id: userId,
-        },
-        {
-          onConflict: "message_id,user_id",
-        }
-      );
+      const { error: upsertError } = await supabase
+        .from("trinity_chat_read_status")
+        .upsert(
+          {
+            message_id: lastMessage.id,
+            user_id: userId,
+          },
+          {
+            onConflict: "message_id,user_id",
+          }
+        );
+
+      if (upsertError) {
+        console.error(
+          "❌ markMessagesAsRead - Error upserting read status:",
+          upsertError
+        );
+      } else {
+        console.log("✅ markMessagesAsRead - Successfully marked as read");
+      }
     } catch (error) {
-      console.error("Error marking messages as read:", error);
+      console.error("❌ markMessagesAsRead - General error:", error);
     }
   }
 

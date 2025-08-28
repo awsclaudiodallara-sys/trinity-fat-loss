@@ -1,12 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import {
-  ArrowLeft,
-  Send,
-  Smile,
-  Paperclip,
-  Users,
-  Settings,
-} from "lucide-react";
+import { ArrowLeft, Send, Smile, Paperclip, Users } from "lucide-react";
 import type { ChatMessage } from "../services/trinityChatService";
 import { trinityChatService } from "../services/trinityChatService";
 
@@ -422,9 +415,6 @@ export const TrinityChat: React.FC<TrinityChatProps> = ({
               </div>
             </div>
           </div>
-          <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-            <Settings className="h-5 w-5 text-gray-600" />
-          </button>
         </div>
       </div>
 

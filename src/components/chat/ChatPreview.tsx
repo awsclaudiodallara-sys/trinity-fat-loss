@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { MessageCircle, Users, Send } from "lucide-react";
 import type { ChatMessage } from "../../services/trinityChatService";
 import { trinityChatService } from "../../services/trinityChatService";
+import { supabase } from "../../lib/supabase";
 
 interface ChatPreviewProps {
   trioId: string;
@@ -91,8 +92,38 @@ export const ChatPreview: React.FC<ChatPreviewProps> = ({
       }
     );
 
+    // Subscription per monitorare i cambiamenti nel read status
+    const readStatusChannel = supabase
+      .channel(`read-status-${trioId}-${currentUserId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "trinity_chat_read_status",
+          filter: `user_id=eq.${currentUserId}`,
+        },
+        async () => {
+          // Quando cambia lo stato di lettura, ricalcola il contatore
+          if (currentUserId) {
+            try {
+              const unread = await trinityChatService.getUnreadCount(
+                trioId,
+                currentUserId
+              );
+              console.log("🔍 ChatPreview - Updated unread count:", unread);
+              setUnreadCount(unread);
+            } catch (error) {
+              console.warn("Error updating unread count:", error);
+            }
+          }
+        }
+      )
+      .subscribe();
+
     return () => {
       trinityChatService.unsubscribeFromChannel(channel);
+      supabase.removeChannel(readStatusChannel);
     };
   }, [trioId, currentUserId]);
 
@@ -120,6 +151,36 @@ export const ChatPreview: React.FC<ChatPreviewProps> = ({
       default:
         return "";
     }
+  };
+
+  const handleOpenChat = async () => {
+    console.log("🔵 ChatPreview - Bottone 'Apri Chat Completa' cliccato");
+    console.log("🔍 ChatPreview - Current User ID:", currentUserId);
+    console.log("🔍 ChatPreview - Trio ID:", trioId);
+    console.log("🔍 ChatPreview - Unread Count before reset:", unreadCount);
+
+    // Azzera il contatore quando si apre la chat
+    if (currentUserId) {
+      try {
+        console.log("🔄 ChatPreview - Chiamando markMessagesAsRead...");
+        await trinityChatService.markMessagesAsRead(trioId, currentUserId);
+        setUnreadCount(0);
+        console.log(
+          "✅ ChatPreview - Messages marked as read, counter reset to 0"
+        );
+      } catch (error) {
+        console.error(
+          "❌ ChatPreview - Error marking messages as read:",
+          error
+        );
+      }
+    } else {
+      console.warn(
+        "⚠️ ChatPreview - No current user ID, cannot mark messages as read"
+      );
+    }
+
+    onOpenChat?.();
   };
 
   if (isLoading) {
@@ -191,7 +252,7 @@ export const ChatPreview: React.FC<ChatPreviewProps> = ({
 
       <div className="flex items-center space-x-2">
         <button
-          onClick={onOpenChat}
+          onClick={handleOpenChat}
           className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
         >
           Apri Chat Completa

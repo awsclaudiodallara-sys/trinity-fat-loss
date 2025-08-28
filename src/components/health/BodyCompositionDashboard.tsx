@@ -30,14 +30,21 @@ export const BodyCompositionDashboard: React.FC = () => {
     try {
       setLoading(true);
 
-      // Load both in parallel for faster loading
-      const [userData, measurementStats] = await Promise.all([
-        bodyMeasurementsService.getCurrentUserData(user.id),
-        bodyMeasurementsService.getMeasurementStats(user.id),
-      ]);
+      // Load only user data for now - stats temporaneamente disabilitate
+      const userData = await bodyMeasurementsService.getCurrentUserData(
+        user.id
+      );
 
       setCurrentData(userData || undefined);
-      setStats(measurementStats);
+
+      // Stats mock temporanee per evitare errori
+      setStats({
+        totalMeasurements: 0,
+        firstMeasurementDate: null,
+        latestMeasurementDate: null,
+        averageFrequency: 0,
+        hasCompleteData: false,
+      });
 
       // Calculate body composition if we have complete data
       if (

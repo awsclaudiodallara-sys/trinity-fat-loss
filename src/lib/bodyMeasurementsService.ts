@@ -108,7 +108,7 @@ export const bodyMeasurementsService = {
       .from("user_body_measurements")
       .select("*")
       .eq("user_id", userId)
-      .order("measurement_date", { ascending: false });
+      .order("created_at", { ascending: false });
 
     if (error) throw error;
     return data || [];
@@ -124,7 +124,7 @@ export const bodyMeasurementsService = {
       .from("user_body_measurements")
       .select("*")
       .eq("user_id", userId)
-      .order("measurement_date", { ascending: false })
+      .order("created_at", { ascending: false })
       .limit(1)
       .single();
 
@@ -150,7 +150,7 @@ export const bodyMeasurementsService = {
       const { data: userData, error: userError } = await supabase
         .from("users")
         .select(
-          "current_weight, height, neck_circumference, waist_circumference, hip_circumference, gender, weight, neckcircumference, waistcircumference, hipcircumference"
+          "height, gender, weight, neckcircumference, waistcircumference, hipcircumference"
         )
         .eq("id", userId)
         .single();
@@ -196,23 +196,12 @@ export const bodyMeasurementsService = {
         (t) => t.task_type === "neck_measurement"
       );
 
-      result.weight =
-        weightTask?.actual_value ||
-        userData.current_weight ||
-        userData.weight ||
-        undefined;
+      result.weight = weightTask?.actual_value || userData.weight || undefined;
       result.waist =
-        waistTask?.actual_value ||
-        userData.waist_circumference ||
-        userData.waistcircumference ||
-        undefined;
+        waistTask?.actual_value || userData.waistcircumference || undefined;
       result.neck =
-        neckTask?.actual_value ||
-        userData.neck_circumference ||
-        userData.neckcircumference ||
-        undefined;
-      result.hip =
-        userData.hip_circumference || userData.hipcircumference || undefined;
+        neckTask?.actual_value || userData.neckcircumference || undefined;
+      result.hip = userData.hipcircumference || undefined;
 
       setCachedData(cacheKey, result, 15000); // Cache for 15 seconds since data changes more frequently
       return result;
