@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { MessageCircle, Users, Send } from "lucide-react";
-import type { ChatMessage } from "../../services/trinityChatService";
-import { trinityChatService } from "../../services/trinityChatService";
+import { MessageCircle, Send, Users } from "lucide-react";
+import type { ChatMessage } from "../../services/chatService";
+import { trinityChatService } from "../../services/chatService";
 
 interface ChatPreviewProps {
   trioId: string;

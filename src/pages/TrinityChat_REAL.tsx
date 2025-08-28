@@ -7,8 +7,8 @@ import {
   Users,
   Settings,
 } from "lucide-react";
-import type { ChatMessage } from "../services/trinityChatService";
-import { trinityChatService } from "../services/trinityChatService";
+import type { ChatMessage } from "../services/chatService";
+import { trinityChatService } from "../services/chatService";
 
 interface TrioMember {
   id: string;

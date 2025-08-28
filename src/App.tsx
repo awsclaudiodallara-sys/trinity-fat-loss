@@ -410,7 +410,12 @@ function App() {
       case "analytics-demo":
         return <AnalyticsDemo />;
       case "trinity-chat":
-        return <TrinityChat onGoBack={() => setCurrentScreen("dashboard")} />;
+        return (
+          <TrinityChat
+            trioId="demo-trio-id"
+            onGoBack={() => setCurrentScreen("dashboard")}
+          />
+        );
       case "trinity-video":
         return <TrinityVideo onGoBack={() => setCurrentScreen("dashboard")} />;
       default:

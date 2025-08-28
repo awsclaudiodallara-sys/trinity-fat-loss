@@ -1,7 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { MessageCircle, Users, Send } from "lucide-react";
-import type { ChatMessage } from "../../services/trinityChatService";
-import { trinityChatService } from "../../services/trinityChatService";
+import { MessageCircle, Send, Users } from "lucide-react";
+
+interface ChatMessage {
+  id: string;
+  user_id: string;
+  user_name: string;
+  user_avatar?: string;
+  message: string;
+  timestamp: string;
+  type: "text" | "achievement" | "system" | "image";
+  metadata?: Record<string, unknown>;
+}
 
 interface ChatPreviewProps {
   trioId: string;
@@ -11,7 +20,6 @@ interface ChatPreviewProps {
 
 export const ChatPreview: React.FC<ChatPreviewProps> = ({
   trioId,
-  currentUserId,
   onOpenChat,
 }) => {
   const [recentMessages, setRecentMessages] = useState<ChatMessage[]>([]);
@@ -19,83 +27,37 @@ export const ChatPreview: React.FC<ChatPreviewProps> = ({
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Carica i messaggi iniziali
-    const loadMessages = async () => {
-      try {
-        const messages = await trinityChatService.getMessages(trioId, 3);
-        setRecentMessages(messages.slice(-3)); // Ultimi 3 messaggi
+    const mockMessages: ChatMessage[] = [
+      {
+        id: "1",
+        user_id: "user_2",
+        user_name: "Marco",
+        message: "Grande allenamento oggi! 💪",
+        timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+        type: "text",
+      },
+      {
+        id: "2",
+        user_id: "user_3",
+        user_name: "Giulia",
+        message: "Anch'io ho completato gli esercizi! Ci vediamo domani?",
+        timestamp: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
+        type: "text",
+      },
+      {
+        id: "3",
+        user_id: "user_2",
+        user_name: "Marco",
+        message: "Ha raggiunto un nuovo traguardo: 5kg persi! 🎉",
+        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+        type: "achievement",
+      },
+    ];
 
-        if (currentUserId) {
-          const unread = await trinityChatService.getUnreadCount(
-            trioId,
-            currentUserId
-          );
-          setUnreadCount(unread);
-        }
-      } catch (error) {
-        console.error("Error loading messages:", error);
-        // Fallback ai dati mock in caso di errore
-        const mockMessages: ChatMessage[] = [
-          {
-            id: "1",
-            trio_id: trioId,
-            user_id: "user1",
-            user_name: "Marco",
-            message: "Grande allenamento oggi! 💪",
-            created_at: new Date(Date.now() - 300000).toISOString(),
-            updated_at: new Date(Date.now() - 300000).toISOString(),
-            message_type: "text",
-          },
-          {
-            id: "2",
-            trio_id: trioId,
-            user_id: "user2",
-            user_name: "Giulia",
-            message: "Anch'io ho completato gli esercizi!",
-            created_at: new Date(Date.now() - 900000).toISOString(),
-            updated_at: new Date(Date.now() - 900000).toISOString(),
-            message_type: "text",
-          },
-          {
-            id: "3",
-            trio_id: trioId,
-            user_id: "user1",
-            user_name: "Marco",
-            message: "Ha raggiunto un nuovo traguardo! 🎉",
-            created_at: new Date(Date.now() - 3600000).toISOString(),
-            updated_at: new Date(Date.now() - 3600000).toISOString(),
-            message_type: "achievement",
-          },
-        ];
-        setRecentMessages(mockMessages);
-        setUnreadCount(2);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadMessages();
-
-    // Sottoscrizione ai nuovi messaggi
-    const channel = trinityChatService.subscribeToMessages(
-      trioId,
-      (newMessage) => {
-        setRecentMessages((prev) => {
-          const updated = [...prev, newMessage];
-          return updated.slice(-3); // Mantieni solo gli ultimi 3
-        });
-
-        // Aggiorna contatore non letti se il messaggio non è dell'utente corrente
-        if (currentUserId && newMessage.user_id !== currentUserId) {
-          setUnreadCount((prev) => prev + 1);
-        }
-      }
-    );
-
-    return () => {
-      trinityChatService.unsubscribeFromChannel(channel);
-    };
-  }, [trioId, currentUserId]);
+    setRecentMessages(mockMessages);
+    setUnreadCount(2);
+    setIsLoading(false);
+  }, [trioId]);
 
   const formatTimestamp = (timestamp: string): string => {
     const date = new Date(timestamp);
@@ -170,11 +132,11 @@ export const ChatPreview: React.FC<ChatPreviewProps> = ({
                     {message.user_name}
                   </span>
                   <span className="text-xs text-gray-500">
-                    {formatTimestamp(message.created_at)}
+                    {formatTimestamp(message.timestamp)}
                   </span>
-                  {message.message_type !== "text" && (
+                  {message.type !== "text" && (
                     <span className="text-xs">
-                      {getMessageIcon(message.message_type)}
+                      {getMessageIcon(message.type)}
                     </span>
                   )}
                 </div>
@@ -202,7 +164,7 @@ export const ChatPreview: React.FC<ChatPreviewProps> = ({
       <div className="mt-3 text-xs text-gray-500 text-center">
         Last activity:{" "}
         {recentMessages.length > 0
-          ? formatTimestamp(recentMessages[0].created_at)
+          ? formatTimestamp(recentMessages[0].timestamp)
           : "No messages"}
       </div>
     </div>
