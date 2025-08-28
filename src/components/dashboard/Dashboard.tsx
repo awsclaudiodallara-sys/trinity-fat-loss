@@ -5,6 +5,8 @@ import { UserMenu } from "../common/UserMenu";
 import { DailyCheckIn } from "../checkin/DailyCheckIn";
 import { WeeklyCheckIn } from "../checkin/WeeklyCheckIn";
 import { BodyCompositionDashboard } from "../health/BodyCompositionDashboard";
+import { ChatPreview } from "../chat/ChatPreview";
+import { VideoCallWidget } from "../video/VideoCallWidget";
 
 interface TrioMember {
   id: string;
@@ -41,11 +43,15 @@ interface DashboardProps {
   };
   onLogout?: () => void;
   onGoToMatching?: () => void;
+  onGoToChat?: () => void;
+  onGoToVideo?: () => void;
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({
   userData,
   onGoToMatching,
+  onGoToChat,
+  onGoToVideo,
 }) => {
   const { user } = useAuth();
   const [userStatus, setUserStatus] = useState<{
@@ -237,6 +243,23 @@ export const Dashboard: React.FC<DashboardProps> = ({
           {/* Daily Check-in  */}
           <div className="bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-white/20">
             <DailyCheckIn onTasksUpdated={handleDailyTasksUpdated} />
+          </div>
+
+          {/* Trinity Communication Hub */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Chat Preview */}
+            <ChatPreview
+              trioId={userStatus.trio?.id || ""}
+              currentUserId={user?.id || ""}
+              onOpenChat={onGoToChat}
+            />
+
+            {/* Video Call Widget */}
+            <VideoCallWidget
+              trioId={userStatus.trio?.id || ""}
+              currentUserId={user?.id || ""}
+              onOpenVideo={onGoToVideo}
+            />
           </div>
 
           {/* Weekly Progress */}

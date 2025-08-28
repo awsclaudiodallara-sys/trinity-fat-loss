@@ -226,35 +226,48 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 #### **💬 Chat Testuale Gruppo**
 
-- [ ] **Chat Trinity Always-On**
+- [✅] **Chat Preview Widget**
 
-  - [ ] Chat real-time tra i 3 membri del trio (Supabase Realtime)
-  - [ ] Sistema messaggi con typing indicators
-  - [ ] Reactions/emoji ai messaggi per supporto veloce
-  - [ ] Invio foto progress e meals
-  - [ ] Condivisione progressi con embedding automatico
-  - [ ] Messaggi automatici per achievement e milestone
-  - [ ] Sistema di supporto e motivazione
+  - [✅] Componente ChatPreview integrato in Dashboard
+  - [✅] Preview ultimi 3 messaggi con timestamp
+  - [✅] Indicatore unread count e status membri
+  - [✅] Mock data per testing UI/UX
+  - [✅] Quick action buttons per aprire chat completa
 
-- [ ] **Features Chat Avanzate**
-  - [ ] Mention system (@nome) per notifiche mirate
-  - [ ] Thread/reply ai messaggi per organizzazione
-  - [ ] Pin messaggi importanti (goal, appuntamenti)
-  - [ ] Storia chat searchable e filtrable
-  - [ ] File sharing (documenti, ricette, workout plans)
-  - [ ] Moderazione automatica contenuti inappropriati
-  - [ ] Chat backup e sync cross-device
+- [✅] **Chat Full-Screen Page**
+
+  - [✅] Pagina dedicata /trinity-chat (TrinityChat.tsx)
+  - [✅] Chat real-time UI con messaggi, typing indicators
+  - [✅] Status membri online/offline con avatar
+  - [✅] Sistema input con emoji e attachment buttons
+  - [✅] Responsive design per mobile e desktop
+
+- [ ] **Chat Backend Integration**
+  - [ ] Integrazione Supabase Realtime per messaggi real-time
+  - [ ] Database table: trinity_chat_messages
+  - [ ] API per send/receive/history messaggi
+  - [ ] Push notifications per nuovi messaggi
+  - [ ] File upload per sharing foto progress
 
 #### **📹 Video Chat Settimanale & Scheduling**
 
-- [ ] **Sistema Video Call Trinity**
+- [✅] **Video Call Widget Dashboard**
 
-  - [ ] Integrazione videocall (WebRTC o servizio esterno come Daily.co)
-  - [ ] Video call tra i 3 membri con quality auto-adjustment
-  - [ ] Controlli audio/video avanzati
-  - [ ] Recording call (opzionale) per review successiva
-  - [ ] Screen sharing per condividere grafici progress
-  - [ ] Background blur/virtual backgrounds
+  - [✅] Componente VideoCallWidget integrato in Dashboard
+  - [✅] Status next call schedulato con countdown
+  - [✅] Participants preview con confirmation status
+  - [✅] Quick join/schedule buttons
+  - [✅] Mock data per testing UI/UX
+
+- [✅] **Video Call Full-Screen Page**
+
+  - [✅] Pagina dedicata /trinity-video (TrinityVideo.tsx)
+  - [✅] Pre-call screen con video preview e agenda
+  - [✅] In-call interface con participants grid
+  - [✅] Camera/mic controls, screen share buttons
+  - [✅] Call duration timer e leave call functionality
+
+- [ ] **Video Call Backend Integration**
 
 - [ ] **📅 Calendario & Voting System**
 

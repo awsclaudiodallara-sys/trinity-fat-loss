@@ -12,6 +12,8 @@ import { useAuth } from "./hooks/useAuth";
 import Matching from "./components/onboarding/Matching";
 import { supabase, matchingService } from "./lib/supabase";
 import AnalyticsDemo from "./pages/AnalyticsDemo";
+import { TrinityChat } from "./pages/TrinityChat";
+import { TrinityVideo } from "./pages/TrinityVideo";
 
 type AppScreen =
   | "landing"
@@ -24,7 +26,9 @@ type AppScreen =
   | "fitness-level"
   | "matching"
   | "dashboard"
-  | "analytics-demo";
+  | "analytics-demo"
+  | "trinity-chat"
+  | "trinity-video";
 
 interface UserData {
   name: string;
@@ -395,10 +399,20 @@ function App() {
                 fitnessLevel: "",
               });
             }}
+            onGoToChat={() => {
+              setCurrentScreen("trinity-chat");
+            }}
+            onGoToVideo={() => {
+              setCurrentScreen("trinity-video");
+            }}
           />
         );
       case "analytics-demo":
         return <AnalyticsDemo />;
+      case "trinity-chat":
+        return <TrinityChat onGoBack={() => setCurrentScreen("dashboard")} />;
+      case "trinity-video":
+        return <TrinityVideo onGoBack={() => setCurrentScreen("dashboard")} />;
       default:
         return <LandingPage onStartOnboarding={handleStartOnboarding} />;
     }
@@ -485,13 +499,33 @@ function App() {
           </button>
           <button
             onClick={() => setCurrentScreen("analytics-demo")}
-            className={`block px-2 py-1 rounded ${
+            className={`block mb-1 px-2 py-1 rounded ${
               currentScreen === "analytics-demo"
                 ? "bg-blue-100 text-blue-800"
                 : "text-blue-600 hover:bg-blue-50"
             }`}
           >
             📊 Analytics Demo
+          </button>
+          <button
+            onClick={() => setCurrentScreen("trinity-chat")}
+            className={`block mb-1 px-2 py-1 rounded ${
+              currentScreen === "trinity-chat"
+                ? "bg-blue-100 text-blue-800"
+                : "text-blue-600 hover:bg-blue-50"
+            }`}
+          >
+            💬 Trinity Chat
+          </button>
+          <button
+            onClick={() => setCurrentScreen("trinity-video")}
+            className={`block px-2 py-1 rounded ${
+              currentScreen === "trinity-video"
+                ? "bg-blue-100 text-blue-800"
+                : "text-blue-600 hover:bg-blue-50"
+            }`}
+          >
+            📹 Trinity Video
           </button>
         </div>
       )}
