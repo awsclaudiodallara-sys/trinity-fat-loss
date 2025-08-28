@@ -169,6 +169,14 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 #### **📊 Analytics Dashboard di Gruppo**
 
+- [ ] **Sostituzione Analytics User Singolo**
+
+  - [ ] **IMPORTANTE**: Le attuali analytics user singolo sono solo un MOCK/DEMO
+  - [ ] Sostituire BodyCompositionAnalyticsDemo con sistema funzionante
+  - [ ] Integrare dati reali da database Supabase (body_measurements table)
+  - [ ] Collegare progress tracking con dati check-in settimanali reali
+  - [ ] Rimuovere tutti i mock data e implementare query database reali
+
 - [ ] **Trinity Group Analytics**
 
   - [ ] Dashboard aggregata dei 3 membri del gruppo
