@@ -32,6 +32,7 @@ export const TrinityChat: React.FC<TrinityChatProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [trioMembers] = useState<TrioMember[]>([
     { id: "user1", name: "Marco", online: true },
     { id: "user2", name: "Giulia", online: true },
@@ -40,6 +41,160 @@ export const TrinityChat: React.FC<TrinityChatProps> = ({
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Lista di emoji comuni
+  const commonEmojis = [
+    "😀",
+    "😃",
+    "😄",
+    "😁",
+    "😅",
+    "😂",
+    "🤣",
+    "😊",
+    "😇",
+    "🙂",
+    "😉",
+    "😌",
+    "😍",
+    "🥰",
+    "😘",
+    "😗",
+    "😙",
+    "😚",
+    "😋",
+    "😛",
+    "😝",
+    "😜",
+    "🤪",
+    "🤨",
+    "🧐",
+    "🤓",
+    "😎",
+    "🤩",
+    "🥳",
+    "😏",
+    "😒",
+    "😞",
+    "😔",
+    "😟",
+    "😕",
+    "🙁",
+    "☹️",
+    "😣",
+    "😖",
+    "😫",
+    "😩",
+    "🥺",
+    "😢",
+    "😭",
+    "😤",
+    "😠",
+    "😡",
+    "🤬",
+    "🤯",
+    "😳",
+    "🥵",
+    "🥶",
+    "😱",
+    "😨",
+    "😰",
+    "😥",
+    "😓",
+    "🤗",
+    "🤔",
+    "🤭",
+    "🤫",
+    "🤥",
+    "😶",
+    "😐",
+    "😑",
+    "😬",
+    "🙄",
+    "😯",
+    "😦",
+    "😧",
+    "😮",
+    "😲",
+    "🥱",
+    "😴",
+    "🤤",
+    "😪",
+    "😵",
+    "🤐",
+    "🥴",
+    "🤢",
+    "🤮",
+    "🤧",
+    "😷",
+    "🤒",
+    "🤕",
+    "🤑",
+    "🤠",
+    "😈",
+    "👿",
+    "👹",
+    "👺",
+    "🤡",
+    "💩",
+    "👻",
+    "💀",
+    "☠️",
+    "👽",
+    "👾",
+    "🤖",
+    "🎃",
+    "💪",
+    "👍",
+    "👎",
+    "👌",
+    "✌️",
+    "🤞",
+    "🤟",
+    "🤘",
+    "🤙",
+    "👈",
+    "👉",
+    "👆",
+    "🖕",
+    "👇",
+    "☝️",
+    "👋",
+    "🤚",
+    "🖐️",
+    "✋",
+    "🖖",
+    "🙏",
+    "💯",
+    "🔥",
+    "💥",
+    "⭐",
+    "🌟",
+    "✨",
+    "⚡",
+    "💫",
+    "💢",
+    "❤️",
+    "🧡",
+    "💛",
+    "💚",
+    "💙",
+    "💜",
+    "🖤",
+    "🤍",
+    "🤎",
+    "💔",
+    "❣️",
+    "💕",
+    "💞",
+    "💓",
+    "💗",
+    "💖",
+    "💘",
+    "💝",
+    "💟",
+    "☮️",
+  ];
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -47,6 +202,23 @@ export const TrinityChat: React.FC<TrinityChatProps> = ({
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Chiudi emoji picker quando si clicca fuori
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showEmojiPicker) {
+        const target = event.target as HTMLElement;
+        if (!target.closest(".emoji-picker-container")) {
+          setShowEmojiPicker(false);
+        }
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showEmojiPicker]);
 
   useEffect(() => {
     // Ottieni l'ID utente corrente
@@ -173,6 +345,15 @@ export const TrinityChat: React.FC<TrinityChatProps> = ({
     }
   };
 
+  const addEmoji = (emoji: string) => {
+    setNewMessage((prev) => prev + emoji);
+    setShowEmojiPicker(false);
+  };
+
+  const toggleEmojiPicker = () => {
+    setShowEmojiPicker((prev) => !prev);
+  };
+
   const formatTimestamp = (timestamp: string): string => {
     const date = new Date(timestamp);
     const now = new Date();
@@ -286,7 +467,7 @@ export const TrinityChat: React.FC<TrinityChatProps> = ({
           <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
             <Paperclip className="h-5 w-5 text-gray-600" />
           </button>
-          <div className="flex-1 relative">
+          <div className="flex-1 relative emoji-picker-container">
             <input
               type="text"
               value={newMessage}
@@ -296,8 +477,29 @@ export const TrinityChat: React.FC<TrinityChatProps> = ({
               disabled={isSending}
               className="w-full px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
             />
+            {/* Emoji Picker */}
+            {showEmojiPicker && (
+              <div className="absolute bottom-full right-0 mb-2 bg-white border border-gray-200 rounded-lg shadow-lg p-3 w-80 max-h-48 overflow-y-auto z-50">
+                <div className="grid grid-cols-10 gap-1">
+                  {commonEmojis.map((emoji, index) => (
+                    <button
+                      key={index}
+                      onClick={() => addEmoji(emoji)}
+                      className="p-2 hover:bg-gray-100 rounded text-lg transition-colors"
+                      type="button"
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
-          <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+          <button
+            onClick={toggleEmojiPicker}
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors emoji-picker-container"
+            type="button"
+          >
             <Smile className="h-5 w-5 text-gray-600" />
           </button>
           <button
