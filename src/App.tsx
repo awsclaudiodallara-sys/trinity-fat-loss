@@ -11,6 +11,7 @@ import { Dashboard } from "./components/dashboard/Dashboard";
 import { useAuth } from "./hooks/useAuth";
 import Matching from "./components/onboarding/Matching";
 import { supabase, matchingService } from "./lib/supabase";
+import AnalyticsDemo from "./pages/AnalyticsDemo";
 
 type AppScreen =
   | "landing"
@@ -22,7 +23,8 @@ type AppScreen =
   | "data-collection"
   | "fitness-level"
   | "matching"
-  | "dashboard";
+  | "dashboard"
+  | "analytics-demo";
 
 interface UserData {
   name: string;
@@ -395,6 +397,8 @@ function App() {
             }}
           />
         );
+      case "analytics-demo":
+        return <AnalyticsDemo />;
       default:
         return <LandingPage onStartOnboarding={handleStartOnboarding} />;
     }
@@ -471,13 +475,23 @@ function App() {
           </button>
           <button
             onClick={() => setCurrentScreen("dashboard")}
-            className={`block px-2 py-1 rounded ${
+            className={`block mb-1 px-2 py-1 rounded ${
               currentScreen === "dashboard"
                 ? "bg-blue-100 text-blue-800"
                 : "text-blue-600 hover:bg-blue-50"
             }`}
           >
             🏆 Dashboard
+          </button>
+          <button
+            onClick={() => setCurrentScreen("analytics-demo")}
+            className={`block px-2 py-1 rounded ${
+              currentScreen === "analytics-demo"
+                ? "bg-blue-100 text-blue-800"
+                : "text-blue-600 hover:bg-blue-50"
+            }`}
+          >
+            📊 Analytics Demo
           </button>
         </div>
       )}
