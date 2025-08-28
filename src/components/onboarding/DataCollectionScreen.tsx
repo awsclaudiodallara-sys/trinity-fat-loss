@@ -4,6 +4,12 @@ import { UserMenu } from "../common/UserMenu";
 interface UserData {
   name: string;
   age: number;
+  height: number; // in cm
+  weight?: number; // in kg - per calcoli Navy
+  neckcircumference?: number; // in cm - per calcoli Navy (database lowercase)
+  waistcircumference?: number; // in cm - per calcoli Navy (database lowercase)
+  hipcircumference?: number; // in cm - solo donne, per calcoli Navy (database lowercase)
+  gender?: "male" | "female"; // per calcoli Navy
   languages: string[];
   weightGoal: string;
 }
@@ -22,6 +28,12 @@ export const DataCollectionScreen: React.FC<DataCollectionScreenProps> = ({
   const [formData, setFormData] = useState<UserData>({
     name: userName,
     age: 28,
+    height: 170, // default height in cm
+    weight: undefined,
+    neckcircumference: undefined,
+    waistcircumference: undefined,
+    hipcircumference: undefined,
+    gender: undefined,
     languages: [],
     weightGoal: "",
   });
@@ -36,7 +48,13 @@ export const DataCollectionScreen: React.FC<DataCollectionScreenProps> = ({
   };
 
   const handleSubmit = () => {
-    if (formData.languages.length > 0 && formData.weightGoal) {
+    const baseValidation =
+      formData.languages.length > 0 &&
+      formData.weightGoal &&
+      formData.height >= 140 &&
+      formData.height <= 220;
+
+    if (baseValidation) {
       onNext(formData);
     }
   };
@@ -111,8 +129,210 @@ export const DataCollectionScreen: React.FC<DataCollectionScreenProps> = ({
               </div>
             </div>
 
-            {/* Languages Section */}
+            {/* Height Section */}
+            <div className="mb-8 animate-slide-in-left animation-delay-150">
+              <label className="text-gray-700 font-semibold mb-4 flex items-center">
+                <span className="text-2xl mr-3 animate-bounce-subtle">📏</span>
+                What's your height?
+              </label>
+              <div className="relative group">
+                <input
+                  type="number"
+                  value={formData.height}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      height: parseInt(e.target.value),
+                    }))
+                  }
+                  className="w-full py-4 px-6 text-center text-2xl font-bold bg-gray-50 border-2 border-gray-200 rounded-2xl focus:border-indigo-500 focus:bg-white transition-all duration-300 focus:scale-105 focus:shadow-lg"
+                  min="140"
+                  max="220"
+                  placeholder="170"
+                />
+                <div className="absolute inset-0 pointer-events-none rounded-2xl bg-gradient-to-r from-indigo-500/10 to-purple-500/10 opacity-0 group-focus-within:opacity-100 transition-all duration-300"></div>
+                <div className="absolute right-6 top-1/2 transform -translate-y-1/2 text-gray-400 font-medium pointer-events-none">
+                  cm
+                </div>
+              </div>
+            </div>
+
+            {/* Gender Section - Nuovo per calcoli Navy */}
             <div className="mb-8 animate-slide-in-left animation-delay-200">
+              <label className="text-gray-700 font-semibold mb-4 flex items-center">
+                <span className="text-2xl mr-3 animate-bounce-subtle">👤</span>
+                Gender (for body composition analysis)
+              </label>
+              <div className="grid grid-cols-2 gap-4">
+                {[
+                  { value: "male", label: "Male", emoji: "👨" },
+                  { value: "female", label: "Female", emoji: "👩" },
+                ].map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        gender: option.value as "male" | "female",
+                      }))
+                    }
+                    className={`p-4 rounded-2xl border-2 transition-all duration-300 group ${
+                      formData.gender === option.value
+                        ? "border-indigo-500 bg-indigo-50 shadow-lg scale-105"
+                        : "border-gray-200 hover:border-indigo-300 hover:bg-indigo-50/30 hover:scale-102"
+                    }`}
+                  >
+                    <div className="text-3xl mb-2 group-hover:scale-110 transition-transform">
+                      {option.emoji}
+                    </div>
+                    <div className="font-semibold text-gray-700">
+                      {option.label}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Weight Section - Nuovo per calcoli Navy */}
+            <div className="mb-8 animate-slide-in-left animation-delay-250">
+              <label className="text-gray-700 font-semibold mb-4 flex items-center">
+                <span className="text-2xl mr-3 animate-bounce-subtle">⚖️</span>
+                Current Weight (for body fat analysis)
+              </label>
+              <div className="relative group">
+                <input
+                  type="number"
+                  value={formData.weight || ""}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      weight: e.target.value
+                        ? parseFloat(e.target.value)
+                        : undefined,
+                    }))
+                  }
+                  className="w-full py-4 px-6 text-center text-2xl font-bold bg-gray-50 border-2 border-gray-200 rounded-2xl focus:border-indigo-500 focus:bg-white transition-all duration-300 focus:scale-105 focus:shadow-lg"
+                  min="30"
+                  max="300"
+                  step="0.1"
+                  placeholder="70.5"
+                />
+                <div className="absolute inset-0 pointer-events-none rounded-2xl bg-gradient-to-r from-indigo-500/10 to-purple-500/10 opacity-0 group-focus-within:opacity-100 transition-all duration-300"></div>
+                <div className="absolute right-6 top-1/2 transform -translate-y-1/2 text-gray-400 font-medium pointer-events-none">
+                  kg
+                </div>
+              </div>
+            </div>
+
+            {/* Neck Circumference Section - Nuovo per calcoli Navy */}
+            <div className="mb-8 animate-slide-in-left animation-delay-300">
+              <label className="text-gray-700 font-semibold mb-4 flex items-center">
+                <span className="text-2xl mr-3 animate-bounce-subtle">🏷️</span>
+                Neck Circumference (for body fat analysis)
+              </label>
+              <div className="relative group">
+                <input
+                  type="number"
+                  value={formData.neckcircumference || ""}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      neckcircumference: e.target.value
+                        ? parseFloat(e.target.value)
+                        : undefined,
+                    }))
+                  }
+                  className="w-full py-4 px-6 text-center text-2xl font-bold bg-gray-50 border-2 border-gray-200 rounded-2xl focus:border-indigo-500 focus:bg-white transition-all duration-300 focus:scale-105 focus:shadow-lg"
+                  min="20"
+                  max="60"
+                  step="0.5"
+                  placeholder="35"
+                />
+                <div className="absolute inset-0 pointer-events-none rounded-2xl bg-gradient-to-r from-indigo-500/10 to-purple-500/10 opacity-0 group-focus-within:opacity-100 transition-all duration-300"></div>
+                <div className="absolute right-6 top-1/2 transform -translate-y-1/2 text-gray-400 font-medium pointer-events-none">
+                  cm
+                </div>
+              </div>
+              <p className="text-xs text-gray-500 mt-2 text-center">
+                📏 Measure just below the Adam's apple
+              </p>
+            </div>
+
+            {/* Waist Circumference Section - Nuovo per calcoli Navy */}
+            <div className="mb-8 animate-slide-in-left animation-delay-350">
+              <label className="text-gray-700 font-semibold mb-4 flex items-center">
+                <span className="text-2xl mr-3 animate-bounce-subtle">📐</span>
+                Waist Circumference (for body fat analysis)
+              </label>
+              <div className="relative group">
+                <input
+                  type="number"
+                  value={formData.waistcircumference || ""}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      waistcircumference: e.target.value
+                        ? parseFloat(e.target.value)
+                        : undefined,
+                    }))
+                  }
+                  className="w-full py-4 px-6 text-center text-2xl font-bold bg-gray-50 border-2 border-gray-200 rounded-2xl focus:border-indigo-500 focus:bg-white transition-all duration-300 focus:scale-105 focus:shadow-lg"
+                  min="50"
+                  max="200"
+                  step="0.5"
+                  placeholder="80"
+                />
+                <div className="absolute inset-0 pointer-events-none rounded-2xl bg-gradient-to-r from-indigo-500/10 to-purple-500/10 opacity-0 group-focus-within:opacity-100 transition-all duration-300"></div>
+                <div className="absolute right-6 top-1/2 transform -translate-y-1/2 text-gray-400 font-medium pointer-events-none">
+                  cm
+                </div>
+              </div>
+              <p className="text-xs text-gray-500 mt-2 text-center">
+                📏 Measure at the narrowest point of your torso
+              </p>
+            </div>
+
+            {/* Hip Circumference Section - Solo per donne */}
+            {formData.gender === "female" && (
+              <div className="mb-8 animate-slide-in-left animation-delay-400">
+                <label className="text-gray-700 font-semibold mb-4 flex items-center">
+                  <span className="text-2xl mr-3 animate-bounce-subtle">
+                    🍑
+                  </span>
+                  Hip Circumference (for women's body fat analysis)
+                </label>
+                <div className="relative group">
+                  <input
+                    type="number"
+                    value={formData.hipcircumference || ""}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        hipcircumference: e.target.value
+                          ? parseFloat(e.target.value)
+                          : undefined,
+                      }))
+                    }
+                    className="w-full py-4 px-6 text-center text-2xl font-bold bg-gray-50 border-2 border-gray-200 rounded-2xl focus:border-indigo-500 focus:bg-white transition-all duration-300 focus:scale-105 focus:shadow-lg"
+                    min="60"
+                    max="200"
+                    step="0.5"
+                    placeholder="90"
+                  />
+                  <div className="absolute inset-0 pointer-events-none rounded-2xl bg-gradient-to-r from-indigo-500/10 to-purple-500/10 opacity-0 group-focus-within:opacity-100 transition-all duration-300"></div>
+                  <div className="absolute right-6 top-1/2 transform -translate-y-1/2 text-gray-400 font-medium pointer-events-none">
+                    cm
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 mt-2 text-center">
+                  📏 Measure at the widest point of your hips
+                </p>
+              </div>
+            )}
+
+            {/* Languages Section */}
+            <div className="mb-8 animate-slide-in-left animation-delay-500">
               <label className="text-gray-700 font-semibold mb-4 flex items-center">
                 <span className="text-2xl mr-3 animate-spin-slow">🌍</span>
                 Which languages do you speak fluently? (Select all)
@@ -243,7 +463,10 @@ export const DataCollectionScreen: React.FC<DataCollectionScreenProps> = ({
               <button
                 onClick={handleSubmit}
                 disabled={
-                  formData.languages.length === 0 || !formData.weightGoal
+                  formData.languages.length === 0 ||
+                  !formData.weightGoal ||
+                  formData.height < 140 ||
+                  formData.height > 220
                 }
                 className="w-full py-4 px-6 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold text-lg rounded-2xl shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed enabled:hover:scale-105 enabled:active:scale-95 transition-all duration-300 relative overflow-hidden group"
               >

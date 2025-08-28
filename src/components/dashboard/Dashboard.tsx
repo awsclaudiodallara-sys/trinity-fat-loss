@@ -4,6 +4,7 @@ import { dashboardService } from "../../lib/supabase";
 import { UserMenu } from "../common/UserMenu";
 import { DailyCheckIn } from "../checkin/DailyCheckIn";
 import { WeeklyCheckIn } from "../checkin/WeeklyCheckIn";
+import { BodyCompositionDashboard } from "../health/BodyCompositionDashboard";
 
 interface TrioMember {
   id: string;
@@ -266,6 +267,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
           {/* Embed Weekly Check-in */}
           <div className="bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-white/20">
             <WeeklyCheckIn />
+          </div>
+
+          {/* Body Composition Analytics Dashboard */}
+          <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-white/20">
+            <BodyCompositionDashboard />
           </div>
         </div>
       )}

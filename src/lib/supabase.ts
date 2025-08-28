@@ -20,6 +20,7 @@ export interface UserProfile {
   email: string;
   name: string;
   age?: number;
+  height?: number; // in cm
   languages?: string[];
   weight_goal?: string;
   fitness_level?: string;
@@ -159,6 +160,7 @@ export const matchingService = {
     weight_goal: string;
     fitness_level: string;
     age: number;
+    height: number;
     languages: string[];
     userId: string;
   }): Promise<UserProfile[]> {
@@ -171,6 +173,8 @@ export const matchingService = {
       .neq("id", userData.userId)
       .gte("age", userData.age - 10)
       .lte("age", userData.age + 10)
+      .gte("height", userData.height - 15)
+      .lte("height", userData.height + 15)
       .overlaps("languages", userData.languages)
       .limit(2);
 
@@ -298,6 +302,7 @@ export const matchingService = {
       weight_goal: string;
       fitness_level: string;
       age: number;
+      height: number;
       languages: string[];
     }
   ): Promise<{

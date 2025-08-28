@@ -287,73 +287,60 @@ export const WeeklyCheckIn: React.FC<WeeklyCheckInProps> = () => {
     if (!user) return;
     setLoading(true);
     try {
-      console.log("🔍 Fetching weekly tasks for user:", user.id);
-      console.log("📅 Week start:", formattedWeekStart);
+      // ⚡ Load user profile and tasks in parallel for speed
+      const [userProfileResult, tasksResult] = await Promise.all([
+        supabase
+          .from("users")
+          .select("current_trio_id")
+          .eq("id", user.id)
+          .single(),
+        supabase
+          .from("weekly_tasks")
+          .select("*")
+          .eq("user_id", user.id)
+          .eq("week_start", formattedWeekStart),
+      ]);
 
-      // First, get the user's current_trio_id
-      const { data: userProfile, error: userError } = await supabase
-        .from("users")
-        .select("current_trio_id")
-        .eq("id", user.id)
-        .single();
-
-      if (userError) {
-        console.error("❌ Error fetching user profile:", userError);
+      if (userProfileResult.error) {
+        console.error(
+          "❌ Error fetching user profile:",
+          userProfileResult.error
+        );
         setError("Failed to load user profile.");
         return;
       }
 
-      console.log("👤 User trio_id:", userProfile?.current_trio_id);
+      const userProfile = userProfileResult.data;
+      const existingTasks = tasksResult.data || [];
 
-      const { data, error } = await supabase
-        .from("weekly_tasks")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("week_start", formattedWeekStart);
-
-      if (error) throw error;
-
-      console.log("📊 Fetched tasks from DB:", data);
-
-      // If no data found, create new weekly records
-      if (!data || data.length === 0) {
-        console.log("🆕 No tasks found, creating default tasks...");
-        const newTasks = await createDefaultWeeklyTasks(
-          user.id,
-          userProfile?.current_trio_id || "",
-          formattedWeekStart
-        );
-        console.log("✅ Created tasks:", newTasks);
-        const enrichedTasks = enrichTasksWithUIData(newTasks);
+      // ⚡ Quick check: if we have exactly 6 tasks, use them immediately
+      if (existingTasks.length === 6) {
+        const enrichedTasks = enrichTasksWithUIData(existingTasks);
         setWeeklyTasks(enrichedTasks);
-      } else {
-        console.log("📋 Using existing tasks:", data.length);
-        // Check if we have all 6 tasks, if not, delete and recreate
-        if (data.length < 6) {
-          console.log("⚠️ Incomplete tasks found, recreating...");
-          // Delete existing incomplete tasks
-          await supabase
-            .from("weekly_tasks")
-            .delete()
-            .eq("user_id", user.id)
-            .eq("week_start", formattedWeekStart);
-
-          // Create new complete set
-          const newTasks = await createDefaultWeeklyTasks(
-            user.id,
-            userProfile?.current_trio_id || "",
-            formattedWeekStart
-          );
-          console.log("🔄 Recreated tasks:", newTasks);
-          const enrichedTasks = enrichTasksWithUIData(newTasks);
-          setWeeklyTasks(enrichedTasks);
-        } else {
-          const enrichedTasks = enrichTasksWithUIData(data);
-          setWeeklyTasks(enrichedTasks);
-        }
+        setIsEditable(isWeekEditable(formattedWeekStart));
+        setLoading(false);
+        return;
       }
 
-      // Update editable state based on current week
+      // Only create/recreate if we don't have complete tasks
+      if (existingTasks.length > 0 && existingTasks.length < 6) {
+        // Clean up incomplete tasks
+        await supabase
+          .from("weekly_tasks")
+          .delete()
+          .eq("user_id", user.id)
+          .eq("week_start", formattedWeekStart);
+      }
+
+      // Create new complete set
+      const newTasks = await createDefaultWeeklyTasks(
+        user.id,
+        userProfile?.current_trio_id || "",
+        formattedWeekStart
+      );
+
+      const enrichedTasks = enrichTasksWithUIData(newTasks);
+      setWeeklyTasks(enrichedTasks);
       setIsEditable(isWeekEditable(formattedWeekStart));
     } catch (error) {
       console.error("❌ Error fetching weekly tasks:", error);

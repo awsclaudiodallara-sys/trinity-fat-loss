@@ -9,6 +9,12 @@ interface MatchingData {
   level: string;
   languages: string[];
   age: number;
+  height: number; // in cm
+  weight?: number; // in kg - per calcoli Navy
+  neckcircumference?: number; // in cm - per calcoli Navy (database lowercase)
+  waistcircumference?: number; // in cm - per calcoli Navy (database lowercase)
+  hipcircumference?: number; // in cm - solo donne, per calcoli Navy (database lowercase)
+  gender?: "male" | "female"; // per calcoli Navy
 }
 
 interface MatchingProps {
@@ -46,6 +52,14 @@ const performRealMatching = async (
       email: user.email || "",
       name: userData.name,
       age: userData.age,
+      height: userData.height,
+      // Nuovi campi Navy Body Fat dall'onboarding (database lowercase)
+      weight: userData.weight,
+      neckcircumference: userData.neckcircumference,
+      waistcircumference: userData.waistcircumference,
+      hipcircumference: userData.hipcircumference,
+      gender: userData.gender,
+      // Campi esistenti
       languages: userData.languages,
       weight_goal: userData.goal,
       fitness_level: userData.level,
@@ -63,6 +77,7 @@ const performRealMatching = async (
       weight_goal: userData.goal,
       fitness_level: userData.level,
       age: userData.age,
+      height: userData.height,
       languages: userData.languages,
     });
 

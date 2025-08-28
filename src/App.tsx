@@ -27,6 +27,12 @@ type AppScreen =
 interface UserData {
   name: string;
   age: number;
+  height: number; // in cm
+  weight?: number; // in kg - per calcoli Navy
+  neckcircumference?: number; // in cm - per calcoli Navy (database lowercase)
+  waistcircumference?: number; // in cm - per calcoli Navy (database lowercase)
+  hipcircumference?: number; // in cm - solo donne, per calcoli Navy (database lowercase)
+  gender?: "male" | "female"; // per calcoli Navy
   languages: string[];
   weightGoal: string;
 }
@@ -298,6 +304,13 @@ function App() {
               level: userProgress.fitnessLevel,
               languages: userProgress.userData?.languages || ["English"],
               age: userProgress.userData?.age || 28,
+              height: userProgress.userData?.height || 170,
+              // Nuovi campi Navy Body Fat (database lowercase)
+              weight: userProgress.userData?.weight,
+              neckcircumference: userProgress.userData?.neckcircumference,
+              waistcircumference: userProgress.userData?.waistcircumference,
+              hipcircumference: userProgress.userData?.hipcircumference,
+              gender: userProgress.userData?.gender,
             }}
             onComplete={() => {
               if (user) {
@@ -353,6 +366,10 @@ function App() {
                         languages: dbUserData.languages ||
                           userProgress.userData?.languages || ["English"],
                         age: dbUserData.age || userProgress.userData?.age || 28,
+                        height:
+                          dbUserData.height ||
+                          userProgress.userData?.height ||
+                          170,
                       },
                     });
                   }
