@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { AchievementsAnalytics } from "../gamification/AchievementsAnalytics";
 
 // Mock data per dimostrare le analytics
 const mockBodyCompositionHistory = [
@@ -49,7 +50,7 @@ const mockMeasurements = [
 
 export const BodyCompositionAnalyticsDemo: React.FC = () => {
   const [activeTab, setActiveTab] = useState<
-    "overview" | "trends" | "predictions" | "goals"
+    "overview" | "trends" | "predictions" | "goals" | "achievements"
   >("overview");
 
   // Calcoli per insights
@@ -177,12 +178,18 @@ export const BodyCompositionAnalyticsDemo: React.FC = () => {
           { key: "trends", label: "📈 Trends", icon: "📈" },
           { key: "predictions", label: "🔮 Predictions", icon: "🔮" },
           { key: "goals", label: "🎯 Goals", icon: "🎯" },
+          { key: "achievements", label: "🏆 Achievements", icon: "🏆" },
         ].map((tab) => (
           <button
             key={tab.key}
             onClick={() =>
               setActiveTab(
-                tab.key as "overview" | "trends" | "predictions" | "goals"
+                tab.key as
+                  | "overview"
+                  | "trends"
+                  | "predictions"
+                  | "goals"
+                  | "achievements"
               )
             }
             className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${
@@ -790,6 +797,179 @@ export const BodyCompositionAnalyticsDemo: React.FC = () => {
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Achievements Tab */}
+      {activeTab === "achievements" && (
+        <div className="space-y-6">
+          <AchievementsAnalytics />
+
+          {/* Mock Integration Preview */}
+          <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-6 border border-purple-200">
+            <h3 className="text-xl font-semibold mb-4 flex items-center text-purple-900">
+              <span className="text-2xl mr-3">🚀</span>
+              Body Composition Achievement Integration
+            </h3>
+
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Achievement Progress Simulation */}
+              <div className="bg-white rounded-lg p-4 border">
+                <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                  <span className="text-xl mr-2">🎯</span>
+                  Current Progress Tracking
+                </h4>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center p-3 bg-green-50 rounded border border-green-200">
+                    <div className="flex items-center">
+                      <span className="text-xl mr-2">🥊</span>
+                      <span className="text-sm font-medium">Fat Fighter</span>
+                    </div>
+                    <span className="text-green-600 font-bold">
+                      ✅ UNLOCKED
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-center p-3 bg-yellow-50 rounded border border-yellow-200">
+                    <div className="flex items-center">
+                      <span className="text-xl mr-2">⚡</span>
+                      <span className="text-sm font-medium">
+                        Lean Machine (20% BF)
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-yellow-600 font-bold">
+                        97% Complete
+                      </div>
+                      <div className="text-xs text-gray-600">-0.8% to go</div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center p-3 bg-blue-50 rounded border border-blue-200">
+                    <div className="flex items-center">
+                      <span className="text-xl mr-2">💪</span>
+                      <span className="text-sm font-medium">
+                        Strength Seeker (65kg)
+                      </span>
+                    </div>
+                    <span className="text-blue-600 font-bold">✅ UNLOCKED</span>
+                  </div>
+
+                  <div className="flex justify-between items-center p-3 bg-purple-50 rounded border border-purple-200">
+                    <div className="flex items-center">
+                      <span className="text-xl mr-2">🧬</span>
+                      <span className="text-sm font-medium">
+                        Body Alchemist
+                      </span>
+                    </div>
+                    <span className="text-purple-600 font-bold">
+                      ✅ UNLOCKED
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Upcoming Body Composition Achievements */}
+              <div className="bg-white rounded-lg p-4 border">
+                <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                  <span className="text-xl mr-2">🎯</span>
+                  Next Body Comp Goals
+                </h4>
+                <div className="space-y-3">
+                  <div className="p-3 bg-gray-50 rounded border">
+                    <div className="flex justify-between items-center mb-2">
+                      <div className="flex items-center">
+                        <span className="text-xl mr-2">🏆</span>
+                        <span className="text-sm font-medium">
+                          Athletic Physique
+                        </span>
+                      </div>
+                      <span className="text-green-600 font-bold">+200 pts</span>
+                    </div>
+                    <div className="text-xs text-gray-600">
+                      Reach 15% body fat or lower
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                      <div className="bg-green-500 h-2 rounded-full w-1/4"></div>
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      ETA: ~6 weeks
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-gray-50 rounded border">
+                    <div className="flex justify-between items-center mb-2">
+                      <div className="flex items-center">
+                        <span className="text-xl mr-2">🦾</span>
+                        <span className="text-sm font-medium">
+                          Power Builder
+                        </span>
+                      </div>
+                      <span className="text-orange-600 font-bold">
+                        +200 pts
+                      </span>
+                    </div>
+                    <div className="text-xs text-gray-600">
+                      Reach 70kg lean mass
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                      <div className="bg-orange-500 h-2 rounded-full w-3/4"></div>
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      ETA: ~4 weeks
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-gray-50 rounded border">
+                    <div className="flex justify-between items-center mb-2">
+                      <div className="flex items-center">
+                        <span className="text-xl mr-2">🎯</span>
+                        <span className="text-sm font-medium">
+                          Trim Triumph
+                        </span>
+                      </div>
+                      <span className="text-blue-600 font-bold">+100 pts</span>
+                    </div>
+                    <div className="text-xs text-gray-600">
+                      Reduce waist to 90cm or less
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                      <div className="bg-blue-500 h-2 rounded-full w-full"></div>
+                    </div>
+                    <div className="text-xs text-green-600 mt-1">
+                      ✅ Already achieved!
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Integration Info */}
+            <div className="mt-6 bg-indigo-100 rounded-lg p-4 border border-indigo-200">
+              <h4 className="font-semibold text-indigo-900 mb-2 flex items-center">
+                <span className="text-xl mr-2">💡</span>
+                Sistema di Integrazione Automatica
+              </h4>
+              <div className="text-sm text-indigo-800 space-y-1">
+                <div>
+                  • Achievements automaticamente sbloccati in base ai progressi
+                  body composition
+                </div>
+                <div>• Notifiche real-time per nuovi achievement raggiunti</div>
+                <div>
+                  • Sistema di punti integrato con gamification generale Trinity
+                </div>
+                <div>
+                  • Achievement trio per motivazione di gruppo su trasformazioni
+                  fisiche
+                </div>
+                <div>
+                  • Previsioni AI per stimare quando sbloccare achievement
+                  futuri
+                </div>
               </div>
             </div>
           </div>
