@@ -19,29 +19,55 @@ export const ChatPreview: React.FC<ChatPreviewProps> = ({
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Debug: log dei parametri ricevuti
+    console.log(
+      "ChatPreview - trioId:",
+      trioId,
+      "currentUserId:",
+      currentUserId
+    );
+
     // Carica i messaggi iniziali
     const loadMessages = async () => {
       try {
-        const messages = await trinityChatService.getMessages(trioId, 3);
+        console.log("ChatPreview - Loading messages for trio:", trioId);
+
+        // Prima prova con l'ID passato
+        let messages = await trinityChatService.getMessages(trioId, 3);
+
+        // Se non trova messaggi, prova con l'ID di default usato nella chat
+        if (messages.length === 0) {
+          console.log(
+            "ChatPreview - No messages for trioId, trying default-trio-id"
+          );
+          messages = await trinityChatService.getMessages("default-trio-id", 3);
+        }
+
+        console.log("ChatPreview - Loaded messages:", messages);
         setRecentMessages(messages.slice(-3)); // Ultimi 3 messaggi
 
         if (currentUserId) {
+          // Usa l'ID che ha effettivamente messaggi
+          const actualTrioId =
+            messages.length > 0 ? messages[0].trio_id : trioId;
           const unread = await trinityChatService.getUnreadCount(
-            trioId,
+            actualTrioId,
             currentUserId
           );
+          console.log("ChatPreview - Unread count:", unread);
           setUnreadCount(unread);
         }
       } catch (error) {
         console.error("Error loading messages:", error);
         // Fallback ai dati mock in caso di errore
+        console.warn("ChatPreview - Using fallback mock data");
         const mockMessages: ChatMessage[] = [
           {
             id: "1",
             trio_id: trioId,
             user_id: "user1",
             user_name: "Marco",
-            message: "Grande allenamento oggi! 💪",
+            message: "Ciao a tutti! Come va l'allenamento oggi?",
             created_at: new Date(Date.now() - 300000).toISOString(),
             updated_at: new Date(Date.now() - 300000).toISOString(),
             message_type: "text",
@@ -51,7 +77,8 @@ export const ChatPreview: React.FC<ChatPreviewProps> = ({
             trio_id: trioId,
             user_id: "user2",
             user_name: "Giulia",
-            message: "Anch'io ho completato gli esercizi!",
+            message:
+              "Tutto bene! Ho appena finito la mia sessione di cardio 💪",
             created_at: new Date(Date.now() - 900000).toISOString(),
             updated_at: new Date(Date.now() - 900000).toISOString(),
             message_type: "text",
@@ -59,16 +86,16 @@ export const ChatPreview: React.FC<ChatPreviewProps> = ({
           {
             id: "3",
             trio_id: trioId,
-            user_id: "user1",
-            user_name: "Marco",
-            message: "Ha raggiunto un nuovo traguardo! 🎉",
-            created_at: new Date(Date.now() - 3600000).toISOString(),
-            updated_at: new Date(Date.now() - 3600000).toISOString(),
-            message_type: "achievement",
+            user_id: "demo-user",
+            user_name: "Tu",
+            message: "Perfetto! Anch'io sto per iniziare 🔥",
+            created_at: new Date(Date.now() - 1200000).toISOString(),
+            updated_at: new Date(Date.now() - 1200000).toISOString(),
+            message_type: "text",
           },
         ];
         setRecentMessages(mockMessages);
-        setUnreadCount(2);
+        setUnreadCount(1);
       } finally {
         setIsLoading(false);
       }
@@ -76,9 +103,10 @@ export const ChatPreview: React.FC<ChatPreviewProps> = ({
 
     loadMessages();
 
-    // Sottoscrizione ai nuovi messaggi
+    // Sottoscrizione ai nuovi messaggi - usa l'ID di default se il trio è vuoto
+    const subscriptionTrioId = trioId || "default-trio-id";
     const channel = trinityChatService.subscribeToMessages(
-      trioId,
+      subscriptionTrioId,
       (newMessage) => {
         setRecentMessages((prev) => {
           const updated = [...prev, newMessage];
