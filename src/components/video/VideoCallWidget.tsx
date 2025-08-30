@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Video, Calendar, Clock, Users, Phone } from "lucide-react";
+import { useRealTrioMembers } from "../../lib/realTrioMembersService";
 
 interface VideoCallStatus {
   isScheduled: boolean;
@@ -28,18 +29,46 @@ export const VideoCallWidget: React.FC<VideoCallWidgetProps> = ({
   const [callStatus, setCallStatus] = useState<VideoCallStatus | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Ottieni i membri reali del trio dal database
+  const { 
+    members: realMembers, 
+    isLoading: membersLoading, 
+    error: membersError,
+    getDisplayName 
+  } = useRealTrioMembers(currentUserId);
+
   // Mock data per ora - sarà sostituito con dati reali
   useEffect(() => {
+    // Se stiamo ancora caricando i membri o non ci sono membri, non fare nulla
+    if (membersLoading) {
+      return;
+    }
+
+    // Se ci sono errori o nessun membro, usa fallback
+    let participants;
+    if (membersError || realMembers.length === 0) {
+      console.log('Using fallback members due to error or no members found:', membersError);
+      participants = [
+        { id: "fallback1", name: "Claudio Dall'Ara", confirmed: true, online: true },
+        { id: "fallback2", name: "Membro 2", confirmed: true, online: false },
+        { id: currentUserId, name: "Tu", confirmed: true, online: true },
+      ];
+    } else {
+      // Usa i membri reali dal database
+      participants = realMembers.map(member => ({
+        id: member.id,
+        name: getDisplayName(member),
+        confirmed: true,
+        online: member.isCurrentUser ? true : Math.random() > 0.3, // Random online status per demo
+      }));
+    }
+
     const mockStatus: VideoCallStatus = {
       isScheduled: true,
       scheduledTime: new Date(
         Date.now() + 2 * 24 * 60 * 60 * 1000
       ).toISOString(), // In 2 giorni
-      participants: [
-        { id: "user1", name: "Claudio", confirmed: true, online: true },
-        { id: "user2", name: "Anna", confirmed: true, online: false },
-        { id: currentUserId, name: "You", confirmed: true, online: true },
-      ],
+      participants,
       callInProgress: false,
       nextCallSuggestion: new Date(
         Date.now() + 7 * 24 * 60 * 60 * 1000
@@ -50,7 +79,7 @@ export const VideoCallWidget: React.FC<VideoCallWidgetProps> = ({
       setCallStatus(mockStatus);
       setIsLoading(false);
     }, 500);
-  }, [trioId, currentUserId]);
+  }, [realMembers, membersLoading, membersError, getDisplayName, currentUserId]);
 
   const formatDateTime = (isoString: string) => {
     const date = new Date(isoString);
