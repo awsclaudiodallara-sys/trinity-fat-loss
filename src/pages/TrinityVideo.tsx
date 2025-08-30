@@ -267,9 +267,23 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
             {/* Preview */}
             <div className="relative w-80 h-60 bg-gray-800 rounded-xl overflow-hidden">
               {localVideoEnabled ? (
-                <div className="w-full h-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center">
-                  <div className="text-white text-6xl">📹</div>
-                </div>
+                videoState.localStream ? (
+                  <video
+                    ref={(video) => {
+                      if (video && videoState.localStream) {
+                        video.srcObject = videoState.localStream;
+                      }
+                    }}
+                    autoPlay
+                    muted
+                    playsInline
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center">
+                    <div className="text-white text-6xl">📹</div>
+                  </div>
+                )
               ) : (
                 <div className="w-full h-full bg-gray-700 flex items-center justify-center">
                   <div className="text-center text-white">
@@ -279,7 +293,15 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
                 </div>
               )}
               <div className="absolute bottom-4 left-4 text-white text-sm font-medium">
-                You
+                <div className="flex items-center space-x-2">
+                  <span>You</span>
+                  {videoState.localStream && localVideoEnabled && (
+                    <div className="flex items-center space-x-1">
+                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                      <span className="text-xs">Live</span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -314,6 +336,31 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
                   <MicOff className="h-6 w-6" />
                 )}
               </button>
+
+              {/* Test Camera button - solo se non c'è già uno stream */}
+              {!videoState.localStream && (
+                <button
+                  onClick={startRealVideo}
+                  disabled={videoState.isLoading}
+                  className={`px-6 py-2 rounded-full font-medium transition-colors flex items-center space-x-2 ${
+                    videoState.isLoading
+                      ? "bg-blue-400 cursor-not-allowed"
+                      : "bg-blue-600 hover:bg-blue-700"
+                  } text-white`}
+                >
+                  {videoState.isLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      <span>Connecting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Video className="h-4 w-4" />
+                      <span>Test Camera</span>
+                    </>
+                  )}
+                </button>
+              )}
 
               <button
                 onClick={joinCall}

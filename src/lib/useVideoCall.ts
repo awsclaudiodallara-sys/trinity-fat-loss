@@ -6,6 +6,7 @@ export interface VideoState {
   isVideoEnabled: boolean;
   isAudioEnabled: boolean;
   isConnected: boolean;
+  isLoading: boolean;
   error: string | null;
 }
 
@@ -15,13 +16,14 @@ export const useVideoCall = () => {
     isVideoEnabled: true,
     isAudioEnabled: true,
     isConnected: false,
+    isLoading: false,
     error: null,
   });
 
   // Inizializza la chiamata video
   const startVideo = async () => {
     try {
-      setVideoState((prev) => ({ ...prev, error: null }));
+      setVideoState((prev) => ({ ...prev, error: null, isLoading: true }));
 
       const stream = await webrtcService.getLocalStream(
         videoState.isVideoEnabled,
@@ -32,6 +34,7 @@ export const useVideoCall = () => {
         ...prev,
         localStream: stream,
         isConnected: true,
+        isLoading: false,
       }));
     } catch (error) {
       console.error("Errore nell'avviare il video:", error);
@@ -39,6 +42,7 @@ export const useVideoCall = () => {
         ...prev,
         error: "Impossibile accedere a fotocamera/microfono",
         isConnected: false,
+        isLoading: false,
       }));
     }
   };
@@ -51,6 +55,7 @@ export const useVideoCall = () => {
       isVideoEnabled: true,
       isAudioEnabled: true,
       isConnected: false,
+      isLoading: false,
       error: null,
     });
   };
