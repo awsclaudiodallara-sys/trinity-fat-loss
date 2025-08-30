@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useVideoCall } from "../lib/useVideoCall";
 import { useWebRTCSignaling } from "../lib/useWebRTCSignaling";
+import { VideoCallScheduling } from "../components/video/VideoCallScheduling";
 
 interface VideoCallParticipant {
   id: string;
@@ -288,6 +289,21 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
           </div>
         </div>
       </div>
+
+      {/* Video Call Scheduling Section */}
+      {!isConnected && (
+        <div className="bg-white border-b border-gray-200 px-4 py-4">
+          <VideoCallScheduling
+            trioId="trinity_trio_demo" // In produzione sarà dinamico
+            currentUserId={user.id}
+            onJoinCall={(callId) => {
+              console.log('Joining scheduled call:', callId);
+              // Qui si può avviare automaticamente la call
+              joinCall();
+            }}
+          />
+        </div>
+      )}
 
       {/* Main Video Area */}
       <div className="flex-1 p-4">
