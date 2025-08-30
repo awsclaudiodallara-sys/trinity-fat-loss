@@ -1,26 +1,29 @@
 /**
  * TRINITY FAT LOSS - Componente per Video Call Scheduling
  * Flusso A: Sistema di Proposta Semplice
- * 
+ *
  * UI per gestire proposte di videochiamata
  */
 
-import React, { useState } from 'react';
-import { 
-  Calendar, 
-  Clock, 
-  CheckCircle, 
-  XCircle, 
-  Users, 
+import React, { useState } from "react";
+import {
+  Calendar,
+  Clock,
+  CheckCircle,
+  XCircle,
+  Users,
   AlertCircle,
   Loader,
   Plus,
   Trash2,
-  Video
-} from 'lucide-react';
-import { useVideoCallProposal, useSchedulingUtils } from '../../lib/useVideoCallProposal';
-import type { ProposalStatusView } from '../../lib/videoCallSchedulingService';
-import { SchedulingStatus } from './SchedulingNotifications';
+  Video,
+} from "lucide-react";
+import {
+  useVideoCallProposal,
+  useSchedulingUtils,
+} from "../../lib/useVideoCallProposal";
+import type { ProposalStatusView } from "../../lib/videoCallSchedulingService";
+import { SchedulingStatus } from "./SchedulingNotifications";
 
 interface VideoCallSchedulingProps {
   trioId: string;
@@ -33,7 +36,6 @@ export const VideoCallScheduling: React.FC<VideoCallSchedulingProps> = ({
   currentUserId,
   onJoinCall,
 }) => {
-  
   // Hook per gestire le proposte
   const {
     activePendingProposal,
@@ -57,10 +59,10 @@ export const VideoCallScheduling: React.FC<VideoCallSchedulingProps> = ({
 
   // Stati locali per il form di proposta
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [proposalDate, setProposalDate] = useState('');
-  const [proposalTime, setProposalTime] = useState('');
-  const [proposalTitle, setProposalTitle] = useState('Weekly Trinity Call');
-  const [proposalDescription, setProposalDescription] = useState('');
+  const [proposalDate, setProposalDate] = useState("");
+  const [proposalTime, setProposalTime] = useState("");
+  const [proposalTitle, setProposalTitle] = useState("Weekly Trinity Call");
+  const [proposalDescription, setProposalDescription] = useState("");
 
   /**
    * Gestisce la creazione di una nuova proposta
@@ -71,7 +73,7 @@ export const VideoCallScheduling: React.FC<VideoCallSchedulingProps> = ({
     }
 
     const datetime = new Date(`${proposalDate}T${proposalTime}`);
-    
+
     const success = await createProposal(
       datetime,
       proposalTitle,
@@ -81,29 +83,30 @@ export const VideoCallScheduling: React.FC<VideoCallSchedulingProps> = ({
     if (success) {
       // Reset form
       setShowCreateForm(false);
-      setProposalDate('');
-      setProposalTime('');
-      setProposalTitle('Weekly Trinity Call');
-      setProposalDescription('');
+      setProposalDate("");
+      setProposalTime("");
+      setProposalTitle("Weekly Trinity Call");
+      setProposalDescription("");
     }
   };
 
   /**
    * Componente per mostrare una proposta attiva
    */
-  const ProposalCard: React.FC<{ proposal: ProposalStatusView }> = ({ proposal }) => {
+  const ProposalCard: React.FC<{ proposal: ProposalStatusView }> = ({
+    proposal,
+  }) => {
     const isMyProposal = proposal.proposed_by === currentUserId;
-    const hasResponded = proposal.confirmed_users.includes(currentUserId) || 
-                        proposal.rejected_users.includes(currentUserId);
+    const hasResponded =
+      proposal.confirmed_users.includes(currentUserId) ||
+      proposal.rejected_users.includes(currentUserId);
 
     return (
       <div className="bg-white border border-blue-200 rounded-lg p-4 shadow-sm">
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center space-x-2">
             <Calendar className="w-5 h-5 text-blue-600" />
-            <h3 className="font-semibold text-gray-900">
-              {proposal.title}
-            </h3>
+            <h3 className="font-semibold text-gray-900">{proposal.title}</h3>
           </div>
           {isMyProposal && (
             <button
@@ -123,7 +126,7 @@ export const VideoCallScheduling: React.FC<VideoCallSchedulingProps> = ({
               {formatDateTime(proposal.proposed_datetime)}
             </span>
           </div>
-          
+
           {proposal.description && (
             <p className="text-gray-600 text-sm">{proposal.description}</p>
           )}
@@ -138,7 +141,7 @@ export const VideoCallScheduling: React.FC<VideoCallSchedulingProps> = ({
                 {proposal.confirmed_count} di 2 conferme ricevute
               </span>
             </div>
-            
+
             {pendingResponsesCount > 0 && (
               <div className="flex items-center space-x-1 text-orange-600">
                 <AlertCircle className="w-4 h-4" />
@@ -156,14 +159,16 @@ export const VideoCallScheduling: React.FC<VideoCallSchedulingProps> = ({
               {proposal.confirmed_count === 0 ? (
                 <p className="text-gray-500">Nessuno</p>
               ) : (
-                proposal.confirmed_users.map((userId: string, index: number) => (
-                  <p key={userId} className="text-green-600">
-                    {userId === currentUserId ? 'Tu' : `Membro ${index + 1}`}
-                  </p>
-                ))
+                proposal.confirmed_users.map(
+                  (userId: string, index: number) => (
+                    <p key={userId} className="text-green-600">
+                      {userId === currentUserId ? "Tu" : `Membro ${index + 1}`}
+                    </p>
+                  )
+                )
               )}
             </div>
-            
+
             <div className="space-y-1">
               <span className="font-medium text-red-700">Rifiutato:</span>
               {proposal.rejected_count === 0 ? (
@@ -171,7 +176,7 @@ export const VideoCallScheduling: React.FC<VideoCallSchedulingProps> = ({
               ) : (
                 proposal.rejected_users.map((userId: string, index: number) => (
                   <p key={userId} className="text-red-600">
-                    {userId === currentUserId ? 'Tu' : `Membro ${index + 1}`}
+                    {userId === currentUserId ? "Tu" : `Membro ${index + 1}`}
                   </p>
                 ))
               )}
@@ -195,7 +200,7 @@ export const VideoCallScheduling: React.FC<VideoCallSchedulingProps> = ({
                   </>
                 )}
               </button>
-              
+
               <button
                 onClick={() => rejectProposal(proposal.proposal_id)}
                 disabled={isResponding}
@@ -236,11 +241,9 @@ export const VideoCallScheduling: React.FC<VideoCallSchedulingProps> = ({
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center space-x-2">
             <Video className="w-5 h-5 text-green-600" />
-            <h3 className="font-semibold text-green-900">
-              Prossima Chiamata
-            </h3>
+            <h3 className="font-semibold text-green-900">Prossima Chiamata</h3>
           </div>
-          
+
           {canJoinCall && onJoinCall && (
             <button
               onClick={() => onJoinCall(nextScheduledCall.id)}
@@ -259,15 +262,15 @@ export const VideoCallScheduling: React.FC<VideoCallSchedulingProps> = ({
               {formatDateTime(nextScheduledCall.scheduled_datetime)}
             </span>
           </div>
-          
+
           <div className="flex items-center justify-between">
             <span className="text-sm text-green-700">
               {nextScheduledCall.title}
             </span>
-            
+
             {timeUntilCall && (
               <span className="text-sm text-green-600 font-medium">
-                {canJoinCall ? '🟢 Puoi entrare ora!' : `⏰ ${timeUntilCall}`}
+                {canJoinCall ? "🟢 Puoi entrare ora!" : `⏰ ${timeUntilCall}`}
               </span>
             )}
           </div>
@@ -306,11 +309,11 @@ export const VideoCallScheduling: React.FC<VideoCallSchedulingProps> = ({
             type="date"
             value={proposalDate}
             onChange={(e) => setProposalDate(e.target.value)}
-            min={new Date().toISOString().split('T')[0]}
+            min={new Date().toISOString().split("T")[0]}
             className="w-full border border-blue-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
-        
+
         <div>
           <label className="block text-sm font-medium text-blue-800 mb-1">
             Ora
@@ -383,7 +386,11 @@ export const VideoCallScheduling: React.FC<VideoCallSchedulingProps> = ({
       {/* Status generale del sistema */}
       <SchedulingStatus
         hasActivePendingProposal={!!activePendingProposal}
-        nextCallTime={nextScheduledCall ? formatDateTime(nextScheduledCall.scheduled_datetime) : undefined}
+        nextCallTime={
+          nextScheduledCall
+            ? formatDateTime(nextScheduledCall.scheduled_datetime)
+            : undefined
+        }
         pendingResponsesCount={pendingResponsesCount}
       />
 

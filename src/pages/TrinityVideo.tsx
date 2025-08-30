@@ -78,7 +78,7 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
       participants: [
         {
           id: "user1",
-          name: "Marco",
+          name: "Claudio",
           videoEnabled: true,
           audioEnabled: true,
           isConnected: true,
@@ -86,7 +86,7 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
         },
         {
           id: "user2",
-          name: "Lisa",
+          name: "Anna",
           videoEnabled: false,
           audioEnabled: true,
           isConnected: true,
@@ -297,7 +297,7 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
             trioId="trinity_trio_demo" // In produzione sarà dinamico
             currentUserId={user.id}
             onJoinCall={(callId) => {
-              console.log('Joining scheduled call:', callId);
+              console.log("Joining scheduled call:", callId);
               // Qui si può avviare automaticamente la call
               joinCall();
             }}

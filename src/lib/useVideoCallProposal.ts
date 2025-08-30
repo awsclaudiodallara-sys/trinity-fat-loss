@@ -1,27 +1,33 @@
 /**
  * TRINITY FAT LOSS - React Hook per Video Call Scheduling
  * Flusso A: Sistema di Proposta Semplice
- * 
+ *
  * Hook per gestire lo stato delle proposte di videochiamata in React
  */
 
-import { useState, useEffect, useCallback } from 'react';
-import { VideoCallSchedulingService, SchedulingUtils } from './videoCallSchedulingService';
-import type { ProposalStatusView, ScheduledVideoCall } from './videoCallSchedulingService';
+import { useState, useEffect, useCallback } from "react";
+import {
+  VideoCallSchedulingService,
+  SchedulingUtils,
+} from "./videoCallSchedulingService";
+import type {
+  ProposalStatusView,
+  ScheduledVideoCall,
+} from "./videoCallSchedulingService";
 
 export interface UseVideoCallProposalState {
   // Stato corrente
   activePendingProposal: ProposalStatusView | null;
   nextScheduledCall: ScheduledVideoCall | null;
-  
+
   // Stati di caricamento
   isLoading: boolean;
   isCreatingProposal: boolean;
   isResponding: boolean;
-  
+
   // Errori
   error: string | null;
-  
+
   // Contatori utili
   pendingResponsesCount: number;
   canJoinCall: boolean; // true se la call è entro 15 minuti
@@ -30,21 +36,30 @@ export interface UseVideoCallProposalState {
 
 export interface UseVideoCallProposalActions {
   // Azioni per le proposte
-  createProposal: (datetime: Date, title?: string, description?: string) => Promise<boolean>;
+  createProposal: (
+    datetime: Date,
+    title?: string,
+    description?: string
+  ) => Promise<boolean>;
   confirmProposal: (proposalId: string) => Promise<boolean>;
   rejectProposal: (proposalId: string) => Promise<boolean>;
   cancelProposal: (proposalId: string) => Promise<boolean>;
-  
+
   // Azioni per le chiamate
   markCallAsStarted: (callId: string) => Promise<boolean>;
-  markCallAsCompleted: (callId: string, durationMinutes: number) => Promise<boolean>;
-  
+  markCallAsCompleted: (
+    callId: string,
+    durationMinutes: number
+  ) => Promise<boolean>;
+
   // Utilities
   refreshData: () => Promise<void>;
   clearError: () => void;
 }
 
-export interface UseVideoCallProposalReturn extends UseVideoCallProposalState, UseVideoCallProposalActions {}
+export interface UseVideoCallProposalReturn
+  extends UseVideoCallProposalState,
+    UseVideoCallProposalActions {}
 
 /**
  * Hook principale per gestire le proposte di videochiamata
@@ -53,25 +68,26 @@ export function useVideoCallProposal(
   trioId: string,
   currentUserId: string
 ): UseVideoCallProposalReturn {
-  
   // Stati
-  const [activePendingProposal, setActivePendingProposal] = useState<ProposalStatusView | null>(null);
-  const [nextScheduledCall, setNextScheduledCall] = useState<ScheduledVideoCall | null>(null);
+  const [activePendingProposal, setActivePendingProposal] =
+    useState<ProposalStatusView | null>(null);
+  const [nextScheduledCall, setNextScheduledCall] =
+    useState<ScheduledVideoCall | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreatingProposal, setIsCreatingProposal] = useState(false);
   const [isResponding, setIsResponding] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Calcoli derivati
-  const pendingResponsesCount = activePendingProposal 
-    ? (2 - activePendingProposal.total_responses) // 2 = altri membri che devono rispondere
+  const pendingResponsesCount = activePendingProposal
+    ? 2 - activePendingProposal.total_responses // 2 = altri membri che devono rispondere
     : 0;
 
-  const canJoinCall = nextScheduledCall 
+  const canJoinCall = nextScheduledCall
     ? SchedulingUtils.isWithin15Minutes(nextScheduledCall.scheduled_datetime)
     : false;
 
-  const timeUntilCall = nextScheduledCall 
+  const timeUntilCall = nextScheduledCall
     ? SchedulingUtils.timeUntil(nextScheduledCall.scheduled_datetime)
     : null;
 
@@ -92,7 +108,9 @@ export function useVideoCallProposal(
       setActivePendingProposal(pendingProposal);
       setNextScheduledCall(scheduledCall);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Errore nel caricamento dei dati');
+      setError(
+        err instanceof Error ? err.message : "Errore nel caricamento dei dati"
+      );
     } finally {
       setIsLoading(false);
     }
@@ -101,161 +119,211 @@ export function useVideoCallProposal(
   /**
    * Crea una nuova proposta
    */
-  const createProposal = useCallback(async (
-    datetime: Date, 
-    title = 'Weekly Trinity Call', 
-    description?: string
-  ): Promise<boolean> => {
-    try {
-      setIsCreatingProposal(true);
-      setError(null);
+  const createProposal = useCallback(
+    async (
+      datetime: Date,
+      title = "Weekly Trinity Call",
+      description?: string
+    ): Promise<boolean> => {
+      try {
+        setIsCreatingProposal(true);
+        setError(null);
 
-      const result = await VideoCallSchedulingService.createProposal({
-        trioId,
-        proposedBy: currentUserId,
-        proposedDatetime: datetime,
-        title,
-        description,
-      });
+        const result = await VideoCallSchedulingService.createProposal({
+          trioId,
+          proposedBy: currentUserId,
+          proposedDatetime: datetime,
+          title,
+          description,
+        });
 
-      if (result) {
-        await refreshData(); // Ricarica i dati
-        return true;
-      } else {
-        setError('Errore nella creazione della proposta');
+        if (result) {
+          await refreshData(); // Ricarica i dati
+          return true;
+        } else {
+          setError("Errore nella creazione della proposta");
+          return false;
+        }
+      } catch (err) {
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Errore nella creazione della proposta"
+        );
         return false;
+      } finally {
+        setIsCreatingProposal(false);
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Errore nella creazione della proposta');
-      return false;
-    } finally {
-      setIsCreatingProposal(false);
-    }
-  }, [trioId, currentUserId, refreshData]);
+    },
+    [trioId, currentUserId, refreshData]
+  );
 
   /**
    * Conferma una proposta
    */
-  const confirmProposal = useCallback(async (proposalId: string): Promise<boolean> => {
-    try {
-      setIsResponding(true);
-      setError(null);
+  const confirmProposal = useCallback(
+    async (proposalId: string): Promise<boolean> => {
+      try {
+        setIsResponding(true);
+        setError(null);
 
-      const result = await VideoCallSchedulingService.respondToProposal({
-        proposalId,
-        userId: currentUserId,
-        response: 'confirmed',
-      });
+        const result = await VideoCallSchedulingService.respondToProposal({
+          proposalId,
+          userId: currentUserId,
+          response: "confirmed",
+        });
 
-      if (result) {
-        await refreshData();
-        return true;
-      } else {
-        setError('Errore nella conferma della proposta');
+        if (result) {
+          await refreshData();
+          return true;
+        } else {
+          setError("Errore nella conferma della proposta");
+          return false;
+        }
+      } catch (err) {
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Errore nella conferma della proposta"
+        );
         return false;
+      } finally {
+        setIsResponding(false);
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Errore nella conferma della proposta');
-      return false;
-    } finally {
-      setIsResponding(false);
-    }
-  }, [currentUserId, refreshData]);
+    },
+    [currentUserId, refreshData]
+  );
 
   /**
    * Rifiuta una proposta
    */
-  const rejectProposal = useCallback(async (proposalId: string): Promise<boolean> => {
-    try {
-      setIsResponding(true);
-      setError(null);
+  const rejectProposal = useCallback(
+    async (proposalId: string): Promise<boolean> => {
+      try {
+        setIsResponding(true);
+        setError(null);
 
-      const result = await VideoCallSchedulingService.respondToProposal({
-        proposalId,
-        userId: currentUserId,
-        response: 'rejected',
-      });
+        const result = await VideoCallSchedulingService.respondToProposal({
+          proposalId,
+          userId: currentUserId,
+          response: "rejected",
+        });
 
-      if (result) {
-        await refreshData();
-        return true;
-      } else {
-        setError('Errore nel rifiuto della proposta');
+        if (result) {
+          await refreshData();
+          return true;
+        } else {
+          setError("Errore nel rifiuto della proposta");
+          return false;
+        }
+      } catch (err) {
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Errore nel rifiuto della proposta"
+        );
         return false;
+      } finally {
+        setIsResponding(false);
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Errore nel rifiuto della proposta');
-      return false;
-    } finally {
-      setIsResponding(false);
-    }
-  }, [currentUserId, refreshData]);
+    },
+    [currentUserId, refreshData]
+  );
 
   /**
    * Cancella una proposta (solo chi l'ha creata)
    */
-  const cancelProposal = useCallback(async (proposalId: string): Promise<boolean> => {
-    try {
-      setError(null);
+  const cancelProposal = useCallback(
+    async (proposalId: string): Promise<boolean> => {
+      try {
+        setError(null);
 
-      const result = await VideoCallSchedulingService.cancelProposal(proposalId, currentUserId);
+        const result = await VideoCallSchedulingService.cancelProposal(
+          proposalId,
+          currentUserId
+        );
 
-      if (result) {
-        await refreshData();
-        return true;
-      } else {
-        setError('Errore nella cancellazione della proposta');
+        if (result) {
+          await refreshData();
+          return true;
+        } else {
+          setError("Errore nella cancellazione della proposta");
+          return false;
+        }
+      } catch (err) {
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Errore nella cancellazione della proposta"
+        );
         return false;
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Errore nella cancellazione della proposta');
-      return false;
-    }
-  }, [currentUserId, refreshData]);
+    },
+    [currentUserId, refreshData]
+  );
 
   /**
    * Segna chiamata come iniziata
    */
-  const markCallAsStarted = useCallback(async (callId: string): Promise<boolean> => {
-    try {
-      setError(null);
+  const markCallAsStarted = useCallback(
+    async (callId: string): Promise<boolean> => {
+      try {
+        setError(null);
 
-      const result = await VideoCallSchedulingService.markCallAsStarted(callId);
+        const result = await VideoCallSchedulingService.markCallAsStarted(
+          callId
+        );
 
-      if (result) {
-        await refreshData();
-        return true;
-      } else {
-        setError('Errore nel segnare la chiamata come iniziata');
+        if (result) {
+          await refreshData();
+          return true;
+        } else {
+          setError("Errore nel segnare la chiamata come iniziata");
+          return false;
+        }
+      } catch (err) {
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Errore nel segnare la chiamata come iniziata"
+        );
         return false;
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Errore nel segnare la chiamata come iniziata');
-      return false;
-    }
-  }, [refreshData]);
+    },
+    [refreshData]
+  );
 
   /**
    * Segna chiamata come completata
    */
-  const markCallAsCompleted = useCallback(async (callId: string, durationMinutes: number): Promise<boolean> => {
-    try {
-      setError(null);
+  const markCallAsCompleted = useCallback(
+    async (callId: string, durationMinutes: number): Promise<boolean> => {
+      try {
+        setError(null);
 
-      const result = await VideoCallSchedulingService.markCallAsCompleted(callId, durationMinutes);
+        const result = await VideoCallSchedulingService.markCallAsCompleted(
+          callId,
+          durationMinutes
+        );
 
-      if (result) {
-        await refreshData();
-        return true;
-      } else {
-        setError('Errore nel segnare la chiamata come completata');
+        if (result) {
+          await refreshData();
+          return true;
+        } else {
+          setError("Errore nel segnare la chiamata come completata");
+          return false;
+        }
+      } catch (err) {
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Errore nel segnare la chiamata come completata"
+        );
         return false;
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Errore nel segnare la chiamata come completata');
-      return false;
-    }
-  }, [refreshData]);
+    },
+    [refreshData]
+  );
 
   /**
    * Pulisce gli errori
@@ -296,7 +364,7 @@ export function useVideoCallProposal(
     pendingResponsesCount,
     canJoinCall,
     timeUntilCall,
-    
+
     // Azioni
     createProposal,
     confirmProposal,
@@ -322,7 +390,7 @@ export function useVideoCallStatus(trioId: string) {
     pendingResponsesCount,
     canJoinCall,
     timeUntilCall,
-  } = useVideoCallProposal(trioId, ''); // userId vuoto perché non serve per solo leggere
+  } = useVideoCallProposal(trioId, ""); // userId vuoto perché non serve per solo leggere
 
   return {
     activePendingProposal,

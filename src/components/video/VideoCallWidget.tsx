@@ -36,8 +36,8 @@ export const VideoCallWidget: React.FC<VideoCallWidgetProps> = ({
         Date.now() + 2 * 24 * 60 * 60 * 1000
       ).toISOString(), // In 2 giorni
       participants: [
-        { id: "user1", name: "Marco", confirmed: true, online: true },
-        { id: "user2", name: "Lisa", confirmed: true, online: false },
+        { id: "user1", name: "Claudio", confirmed: true, online: true },
+        { id: "user2", name: "Anna", confirmed: true, online: false },
         { id: currentUserId, name: "You", confirmed: true, online: true },
       ],
       callInProgress: false,

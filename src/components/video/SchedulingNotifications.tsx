@@ -1,16 +1,21 @@
 /**
  * TRINITY FAT LOSS - Sistema di Notifiche per Video Call Scheduling
  * Flusso A: Sistema di Proposta Semplice
- * 
+ *
  * Componente per gestire notifiche e feedback visivo
  */
 
-import React, { useState, useEffect } from 'react';
-import { CheckCircle, XCircle, Clock, Bell, Calendar } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { CheckCircle, XCircle, Clock, Bell, Calendar } from "lucide-react";
 
 export interface SchedulingNotification {
   id: string;
-  type: 'proposal_received' | 'proposal_confirmed' | 'proposal_rejected' | 'call_starting' | 'call_reminder';
+  type:
+    | "proposal_received"
+    | "proposal_confirmed"
+    | "proposal_rejected"
+    | "call_starting"
+    | "call_reminder";
   title: string;
   message: string;
   timestamp: Date;
@@ -24,25 +29,23 @@ interface SchedulingNotificationsProps {
   onClearAll: () => void;
 }
 
-export const SchedulingNotifications: React.FC<SchedulingNotificationsProps> = ({
-  notifications,
-  onMarkAsRead,
-  onClearAll,
-}) => {
+export const SchedulingNotifications: React.FC<
+  SchedulingNotificationsProps
+> = ({ notifications, onMarkAsRead, onClearAll }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = notifications.filter((n) => !n.read).length;
 
-  const getIcon = (type: SchedulingNotification['type']) => {
+  const getIcon = (type: SchedulingNotification["type"]) => {
     switch (type) {
-      case 'proposal_received':
+      case "proposal_received":
         return <Calendar className="w-5 h-5 text-blue-600" />;
-      case 'proposal_confirmed':
+      case "proposal_confirmed":
         return <CheckCircle className="w-5 h-5 text-green-600" />;
-      case 'proposal_rejected':
+      case "proposal_rejected":
         return <XCircle className="w-5 h-5 text-red-600" />;
-      case 'call_starting':
+      case "call_starting":
         return <Bell className="w-5 h-5 text-purple-600" />;
-      case 'call_reminder':
+      case "call_reminder":
         return <Clock className="w-5 h-5 text-orange-600" />;
       default:
         return <Bell className="w-5 h-5 text-gray-600" />;
@@ -53,8 +56,8 @@ export const SchedulingNotifications: React.FC<SchedulingNotificationsProps> = (
     const now = new Date();
     const diffMs = now.getTime() - timestamp.getTime();
     const diffMinutes = Math.floor(diffMs / (1000 * 60));
-    
-    if (diffMinutes < 1) return 'Ora';
+
+    if (diffMinutes < 1) return "Ora";
     if (diffMinutes < 60) return `${diffMinutes}m fa`;
     if (diffMinutes < 1440) return `${Math.floor(diffMinutes / 60)}h fa`;
     return `${Math.floor(diffMinutes / 1440)}g fa`;
@@ -70,7 +73,7 @@ export const SchedulingNotifications: React.FC<SchedulingNotificationsProps> = (
         <Bell className="w-5 h-5 text-gray-600" />
         {unreadCount > 0 && (
           <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-            {unreadCount > 9 ? '9+' : unreadCount}
+            {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
       </button>
@@ -79,11 +82,11 @@ export const SchedulingNotifications: React.FC<SchedulingNotificationsProps> = (
       {isOpen && (
         <>
           {/* Overlay */}
-          <div 
-            className="fixed inset-0 z-40" 
+          <div
+            className="fixed inset-0 z-40"
             onClick={() => setIsOpen(false)}
           />
-          
+
           {/* Dropdown Content */}
           <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
             <div className="p-4 border-b border-gray-200">
@@ -111,7 +114,7 @@ export const SchedulingNotifications: React.FC<SchedulingNotificationsProps> = (
                   <div
                     key={notification.id}
                     className={`p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer ${
-                      !notification.read ? 'bg-blue-50' : ''
+                      !notification.read ? "bg-blue-50" : ""
                     }`}
                     onClick={() => onMarkAsRead(notification.id)}
                   >
@@ -119,7 +122,7 @@ export const SchedulingNotifications: React.FC<SchedulingNotificationsProps> = (
                       <div className="flex-shrink-0 mt-1">
                         {getIcon(notification.type)}
                       </div>
-                      
+
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
                           <p className="font-medium text-gray-900 text-sm">
@@ -129,11 +132,11 @@ export const SchedulingNotifications: React.FC<SchedulingNotificationsProps> = (
                             {formatTime(notification.timestamp)}
                           </span>
                         </div>
-                        
+
                         <p className="text-gray-600 text-sm mt-1">
                           {notification.message}
                         </p>
-                        
+
                         {!notification.read && (
                           <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
                         )}
@@ -154,32 +157,35 @@ export const SchedulingNotifications: React.FC<SchedulingNotificationsProps> = (
  * Hook per gestire le notifiche del sistema scheduling
  */
 export function useSchedulingNotifications(trioId: string) {
-  const [notifications, setNotifications] = useState<SchedulingNotification[]>([]);
+  const [notifications, setNotifications] = useState<SchedulingNotification[]>(
+    []
+  );
 
   // Simula notifiche per demo
   useEffect(() => {
     const mockNotifications: SchedulingNotification[] = [
       {
-        id: '1',
-        type: 'proposal_received',
-        title: 'Nuova Proposta',
-        message: 'Marco ha proposto una videochiamata per Martedì 15:00',
+        id: "1",
+        type: "proposal_received",
+        title: "Nuova Proposta",
+        message: "Claudio ha proposto una videochiamata per Martedì 15:00",
         timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minuti fa
         read: false,
       },
       {
-        id: '2',
-        type: 'proposal_confirmed',
-        title: 'Proposta Confermata',
-        message: 'La videochiamata di Giovedì 16:00 è stata confermata da tutti',
+        id: "2",
+        type: "proposal_confirmed",
+        title: "Proposta Confermata",
+        message:
+          "La videochiamata di Giovedì 16:00 è stata confermata da tutti",
         timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 ore fa
         read: true,
       },
       {
-        id: '3',
-        type: 'call_reminder',
-        title: 'Promemoria Chiamata',
-        message: 'La tua Trinity call inizia tra 15 minuti',
+        id: "3",
+        type: "call_reminder",
+        title: "Promemoria Chiamata",
+        message: "La tua Trinity call inizia tra 15 minuti",
         timestamp: new Date(Date.now() - 1000 * 60 * 5), // 5 minuti fa
         read: false,
       },
@@ -189,26 +195,24 @@ export function useSchedulingNotifications(trioId: string) {
   }, [trioId]);
 
   const markAsRead = (notificationId: string) => {
-    setNotifications(prev => 
-      prev.map(n => 
-        n.id === notificationId ? { ...n, read: true } : n
-      )
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === notificationId ? { ...n, read: true } : n))
     );
   };
 
   const clearAll = () => {
-    setNotifications(prev => 
-      prev.map(n => ({ ...n, read: true }))
-    );
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
   };
 
-  const addNotification = (notification: Omit<SchedulingNotification, 'id'>) => {
+  const addNotification = (
+    notification: Omit<SchedulingNotification, "id">
+  ) => {
     const newNotification: SchedulingNotification = {
       ...notification,
       id: Date.now().toString(),
     };
-    
-    setNotifications(prev => [newNotification, ...prev]);
+
+    setNotifications((prev) => [newNotification, ...prev]);
   };
 
   return {
