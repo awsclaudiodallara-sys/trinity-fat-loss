@@ -24,6 +24,7 @@ import {
 } from "../../lib/useVideoCallProposal";
 import type { ProposalStatusView } from "../../lib/videoCallSchedulingService";
 import { SchedulingStatus } from "./SchedulingNotifications";
+import { useRealTrioMembers } from "../../lib/realTrioMembersService";
 
 interface VideoCallSchedulingProps {
   trioId: string;
@@ -56,6 +57,16 @@ export const VideoCallScheduling: React.FC<VideoCallSchedulingProps> = ({
 
   // Hook per utility di formattazione
   const { formatDateTime } = useSchedulingUtils();
+
+  // Hook per ottenere i membri reali del trio
+  const { members, getDisplayName } = useRealTrioMembers(currentUserId);
+
+  // Funzione helper per ottenere il nome da userId
+  const getUserDisplayName = (userId: string): string => {
+    if (userId === currentUserId) return "Tu";
+    const member = members.find((m) => m.id === userId);
+    return member ? getDisplayName(member) : `Utente ${userId}`;
+  };
 
   // Stati locali per il form di proposta
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -159,13 +170,11 @@ export const VideoCallScheduling: React.FC<VideoCallSchedulingProps> = ({
               {proposal.confirmed_count === 0 ? (
                 <p className="text-gray-500">Nessuno</p>
               ) : (
-                proposal.confirmed_users.map(
-                  (userId: string, index: number) => (
-                    <p key={userId} className="text-green-600">
-                      {userId === currentUserId ? "Tu" : `Membro ${index + 1}`}
-                    </p>
-                  )
-                )
+                proposal.confirmed_users.map((userId: string) => (
+                  <p key={userId} className="text-green-600">
+                    {getUserDisplayName(userId)}
+                  </p>
+                ))
               )}
             </div>
 
@@ -174,9 +183,9 @@ export const VideoCallScheduling: React.FC<VideoCallSchedulingProps> = ({
               {proposal.rejected_count === 0 ? (
                 <p className="text-gray-500">Nessuno</p>
               ) : (
-                proposal.rejected_users.map((userId: string, index: number) => (
+                proposal.rejected_users.map((userId: string) => (
                   <p key={userId} className="text-red-600">
-                    {userId === currentUserId ? "Tu" : `Membro ${index + 1}`}
+                    {getUserDisplayName(userId)}
                   </p>
                 ))
               )}

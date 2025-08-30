@@ -3,8 +3,8 @@
  * Ottiene i nomi reali dal database invece di usare mock data
  */
 
-import { supabase } from './supabase';
-import type { UserMatch } from './supabase';
+import { supabase } from "./supabase";
+import type { UserMatch } from "./supabase";
 
 export interface TrioMemberData {
   id: string;
@@ -17,27 +17,31 @@ export interface TrioMemberData {
  * Service per ottenere i membri reali del trio dal database
  */
 export class RealTrioMembersService {
-  
   /**
    * Ottieni il trio dell'utente corrente
    */
-  static async getCurrentUserTrio(currentUserId: string): Promise<UserMatch | null> {
+  static async getCurrentUserTrio(
+    currentUserId: string
+  ): Promise<UserMatch | null> {
     try {
+      console.log("Trying to fetch trio for user:", currentUserId);
       const { data, error } = await supabase
-        .from('user_matches')
-        .select('*')
-        .or(`user1_id.eq.${currentUserId},user2_id.eq.${currentUserId},user3_id.eq.${currentUserId}`)
-        .eq('status', 'active')
+        .from("user_matches")
+        .select("*")
+        .or(
+          `user1_id.eq.${currentUserId},user2_id.eq.${currentUserId},user3_id.eq.${currentUserId}`
+        )
+        .eq("status", "active")
         .single();
 
       if (error) {
-        console.log('Error fetching trio:', error);
+        console.log("Error fetching trio:", error);
         return null;
       }
 
       return data;
     } catch (error) {
-      console.error('Error in getCurrentUserTrio:', error);
+      console.error("Error in getCurrentUserTrio:", error);
       return null;
     }
   }
@@ -45,23 +49,25 @@ export class RealTrioMembersService {
   /**
    * Ottieni i profili degli utenti del trio
    */
-  static async getTrioMembersProfiles(trio: UserMatch): Promise<TrioMemberData[]> {
+  static async getTrioMembersProfiles(
+    trio: UserMatch
+  ): Promise<TrioMemberData[]> {
     try {
       const userIds = [trio.user1_id, trio.user2_id, trio.user3_id];
-      
+
       const { data, error } = await supabase
-        .from('user_profiles')
-        .select('id, name, email')
-        .in('id', userIds);
+        .from("user_profiles")
+        .select("id, name, email")
+        .in("id", userIds);
 
       if (error) {
-        console.log('Error fetching member profiles:', error);
+        console.log("Error fetching member profiles:", error);
         return [];
       }
 
       return data || [];
     } catch (error) {
-      console.error('Error in getTrioMembersProfiles:', error);
+      console.error("Error in getTrioMembersProfiles:", error);
       return [];
     }
   }
@@ -69,27 +75,28 @@ export class RealTrioMembersService {
   /**
    * Ottieni i membri del trio dell'utente corrente con i loro nomi reali
    */
-  static async getCurrentTrioMembers(currentUserId: string): Promise<TrioMemberData[]> {
+  static async getCurrentTrioMembers(
+    currentUserId: string
+  ): Promise<TrioMemberData[]> {
     try {
       // 1. Ottieni il trio dell'utente
       const trio = await this.getCurrentUserTrio(currentUserId);
-      
+
       if (!trio) {
-        console.log('No active trio found for user:', currentUserId);
+        console.log("No active trio found for user:", currentUserId);
         return [];
       }
 
       // 2. Ottieni i profili dei membri
       const members = await this.getTrioMembersProfiles(trio);
-      
+
       // 3. Aggiungi flag per utente corrente
-      return members.map(member => ({
+      return members.map((member) => ({
         ...member,
         isCurrentUser: member.id === currentUserId,
       }));
-      
     } catch (error) {
-      console.error('Error in getCurrentTrioMembers:', error);
+      console.error("Error in getCurrentTrioMembers:", error);
       return [];
     }
   }
@@ -97,7 +104,10 @@ export class RealTrioMembersService {
   /**
    * Formatta il nome per la visualizzazione
    */
-  static formatDisplayName(member: TrioMemberData, showAsYou: boolean = true): string {
+  static formatDisplayName(
+    member: TrioMemberData,
+    showAsYou: boolean = true
+  ): string {
     if (member.isCurrentUser && showAsYou) {
       return "Tu";
     }
@@ -109,9 +119,9 @@ export class RealTrioMembersService {
    */
   static getInitials(name: string): string {
     return name
-      .split(' ')
-      .map(word => word.charAt(0))
-      .join('')
+      .split(" ")
+      .map((word) => word.charAt(0))
+      .join("")
       .toUpperCase()
       .substring(0, 2);
   }
@@ -135,13 +145,18 @@ export function useRealTrioMembers(currentUserId?: string) {
       try {
         setIsLoading(true);
         setError(null);
-        
-        const trioMembers = await RealTrioMembersService.getCurrentTrioMembers(currentUserId);
+
+        const trioMembers = await RealTrioMembersService.getCurrentTrioMembers(
+          currentUserId
+        );
         setMembers(trioMembers);
-        
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Errore nel caricamento dei membri');
-        console.error('Error in useRealTrioMembers:', err);
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Errore nel caricamento dei membri"
+        );
+        console.error("Error in useRealTrioMembers:", err);
       } finally {
         setIsLoading(false);
       }
@@ -155,11 +170,11 @@ export function useRealTrioMembers(currentUserId?: string) {
   }, []);
 
   const getCurrentMember = React.useMemo(() => {
-    return members.find(member => member.isCurrentUser) || null;
+    return members.find((member) => member.isCurrentUser) || null;
   }, [members]);
 
   const getOtherMembers = React.useMemo(() => {
-    return members.filter(member => !member.isCurrentUser);
+    return members.filter((member) => !member.isCurrentUser);
   }, [members]);
 
   return {
@@ -174,4 +189,4 @@ export function useRealTrioMembers(currentUserId?: string) {
 }
 
 // Import React per il hook
-import React from 'react';
+import React from "react";

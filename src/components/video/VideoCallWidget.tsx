@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Video, Calendar, Clock, Users, Phone } from "lucide-react";
-import { useRealTrioMembers } from "../../lib/realTrioMembersService";
+import { useAuth } from "../../hooks/useAuth";
+import { dashboardService } from "../../lib/supabase";
 
 interface VideoCallStatus {
   isScheduled: boolean;
@@ -16,70 +17,108 @@ interface VideoCallStatus {
 }
 
 interface VideoCallWidgetProps {
-  trioId: string;
   currentUserId: string;
-  onOpenVideo?: () => void; // Navigation function
+  onOpenVideo?: () => void;
 }
 
 export const VideoCallWidget: React.FC<VideoCallWidgetProps> = ({
-  trioId,
   currentUserId,
   onOpenVideo,
 }) => {
   const [callStatus, setCallStatus] = useState<VideoCallStatus | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { user } = useAuth();
 
-  // Ottieni i membri reali del trio dal database
-  const { 
-    members: realMembers, 
-    isLoading: membersLoading, 
-    error: membersError,
-    getDisplayName 
-  } = useRealTrioMembers(currentUserId);
-
-  // Mock data per ora - sarà sostituito con dati reali
   useEffect(() => {
-    // Se stiamo ancora caricando i membri o non ci sono membri, non fare nulla
-    if (membersLoading) {
-      return;
-    }
+    const loadTrioMembers = async () => {
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
 
-    // Se ci sono errori o nessun membro, usa fallback
-    let participants;
-    if (membersError || realMembers.length === 0) {
-      console.log('Using fallback members due to error or no members found:', membersError);
-      participants = [
-        { id: "fallback1", name: "Claudio Dall'Ara", confirmed: true, online: true },
-        { id: "fallback2", name: "Membro 2", confirmed: true, online: false },
-        { id: currentUserId, name: "Tu", confirmed: true, online: true },
-      ];
-    } else {
-      // Usa i membri reali dal database
-      participants = realMembers.map(member => ({
-        id: member.id,
-        name: getDisplayName(member),
-        confirmed: true,
-        online: member.isCurrentUser ? true : Math.random() > 0.3, // Random online status per demo
-      }));
-    }
+      try {
+        console.log("Fetching trio members using dashboardService...");
+        const status = await dashboardService.getUserStatus(user.id);
 
-    const mockStatus: VideoCallStatus = {
-      isScheduled: true,
-      scheduledTime: new Date(
-        Date.now() + 2 * 24 * 60 * 60 * 1000
-      ).toISOString(), // In 2 giorni
-      participants,
-      callInProgress: false,
-      nextCallSuggestion: new Date(
-        Date.now() + 7 * 24 * 60 * 60 * 1000
-      ).toISOString(), // Settimana prossima
+        let participants;
+        if (status?.trio?.members && status.trio.members.length > 0) {
+          console.log(
+            "Using REAL members from dashboardService:",
+            status.trio.members
+          );
+          participants = status.trio.members.map((member: any) => ({
+            id: member.id,
+            name: member.name || `Member ${member.id.slice(-4)}`,
+            confirmed: true,
+            online: Math.random() > 0.3,
+          }));
+        } else {
+          console.log("Using fallback members - no trio found");
+          participants = [
+            {
+              id: "fallback1",
+              name: "Claudio Dall'Ara",
+              confirmed: true,
+              online: true,
+            },
+            {
+              id: "fallback2",
+              name: "Membro 2",
+              confirmed: true,
+              online: false,
+            },
+            { id: currentUserId, name: "Tu", confirmed: true, online: true },
+          ];
+        }
+
+        const mockStatus: VideoCallStatus = {
+          isScheduled: true,
+          scheduledTime: new Date(
+            Date.now() + 2 * 24 * 60 * 60 * 1000
+          ).toISOString(),
+          participants,
+          callInProgress: false,
+          nextCallSuggestion: new Date(
+            Date.now() + 7 * 24 * 60 * 60 * 1000
+          ).toISOString(),
+        };
+
+        setCallStatus(mockStatus);
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error loading trio members:", error);
+        const fallbackStatus: VideoCallStatus = {
+          isScheduled: true,
+          scheduledTime: new Date(
+            Date.now() + 2 * 24 * 60 * 60 * 1000
+          ).toISOString(),
+          participants: [
+            {
+              id: "fallback1",
+              name: "Claudio Dall'Ara",
+              confirmed: true,
+              online: true,
+            },
+            {
+              id: "fallback2",
+              name: "Membro 2",
+              confirmed: true,
+              online: false,
+            },
+            { id: "you", name: "Tu", confirmed: true, online: true },
+          ],
+          callInProgress: false,
+          nextCallSuggestion: new Date(
+            Date.now() + 7 * 24 * 60 * 60 * 1000
+          ).toISOString(),
+        };
+        setCallStatus(fallbackStatus);
+        setIsLoading(false);
+      }
     };
 
-    setTimeout(() => {
-      setCallStatus(mockStatus);
-      setIsLoading(false);
-    }, 500);
-  }, [realMembers, membersLoading, membersError, getDisplayName, currentUserId]);
+    loadTrioMembers();
+  }, [user, currentUserId]);
 
   const formatDateTime = (isoString: string) => {
     const date = new Date(isoString);
@@ -155,7 +194,6 @@ export const VideoCallWidget: React.FC<VideoCallWidgetProps> = ({
 
   return (
     <div className="bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-white/20">
-      {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-2">
           <Video className="h-5 w-5 text-purple-600" />
@@ -171,7 +209,6 @@ export const VideoCallWidget: React.FC<VideoCallWidgetProps> = ({
         )}
       </div>
 
-      {/* Call Status */}
       {callStatus.isScheduled && callStatus.scheduledTime ? (
         <div className="mb-4">
           <div className="flex items-center space-x-2 mb-2">
@@ -207,7 +244,6 @@ export const VideoCallWidget: React.FC<VideoCallWidgetProps> = ({
         </div>
       )}
 
-      {/* Participants */}
       <div className="mb-4">
         <div className="flex items-center space-x-2 mb-2">
           <Users className="h-4 w-4 text-gray-600" />
@@ -218,7 +254,7 @@ export const VideoCallWidget: React.FC<VideoCallWidgetProps> = ({
         <div className="grid grid-cols-3 gap-2">
           {callStatus.participants.map((participant) => (
             <div key={participant.id} className="text-center">
-              <div className={`relative inline-block mb-1`}>
+              <div className="relative inline-block mb-1">
                 <div
                   className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
                     participant.confirmed
@@ -243,7 +279,6 @@ export const VideoCallWidget: React.FC<VideoCallWidgetProps> = ({
         </div>
       </div>
 
-      {/* Action Buttons */}
       <div className="space-y-2">
         {callStatus.callInProgress ? (
           <button
@@ -281,7 +316,6 @@ export const VideoCallWidget: React.FC<VideoCallWidgetProps> = ({
         )}
       </div>
 
-      {/* Quick Info */}
       <div className="mt-3 text-xs text-gray-500 text-center">
         {callStatus.isScheduled
           ? "Weekly Trinity support session"
