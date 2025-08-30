@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { useVideoCallProposal, useSchedulingUtils } from '../../lib/useVideoCallProposal';
 import type { ProposalStatusView } from '../../lib/videoCallSchedulingService';
+import { SchedulingStatus } from './SchedulingNotifications';
 
 interface VideoCallSchedulingProps {
   trioId: string;
@@ -379,6 +380,13 @@ export const VideoCallScheduling: React.FC<VideoCallSchedulingProps> = ({
 
   return (
     <div className="space-y-4">
+      {/* Status generale del sistema */}
+      <SchedulingStatus
+        hasActivePendingProposal={!!activePendingProposal}
+        nextCallTime={nextScheduledCall ? formatDateTime(nextScheduledCall.scheduled_datetime) : undefined}
+        pendingResponsesCount={pendingResponsesCount}
+      />
+
       {/* Errori */}
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-center justify-between">
