@@ -13,6 +13,7 @@ import {
   MessageCircle,
   Clock,
 } from "lucide-react";
+import { useVideoCall } from "../lib/useVideoCall";
 
 interface VideoCallParticipant {
   id: string;
@@ -47,6 +48,15 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
   const [localAudioEnabled, setLocalAudioEnabled] = useState(true);
   const [isConnected, setIsConnected] = useState(false);
   const [callDuration, setCallDuration] = useState(0);
+
+  // Hook per gestire la video chiamata reale
+  const {
+    videoState,
+    startVideo: startRealVideo,
+    stopVideo: stopRealVideo,
+    toggleVideo: toggleRealVideo,
+    toggleAudio: toggleRealAudio,
+  } = useVideoCall();
 
   // Mock data per ora - sarà sostituito con dati reali
   useEffect(() => {
@@ -106,21 +116,32 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
     return () => clearInterval(interval);
   }, [isConnected]);
 
-  const joinCall = () => {
-    setIsConnected(true);
-    if (callSession) {
-      const updatedSession = {
-        ...callSession,
-        status: "active" as const,
-        participants: callSession.participants.map((p) =>
-          p.id === user.id ? { ...p, isConnected: true } : p
-        ),
-      };
-      setCallSession(updatedSession);
+  const joinCall = async () => {
+    try {
+      // Avvia la video chiamata reale
+      await startRealVideo();
+
+      setIsConnected(true);
+      if (callSession) {
+        const updatedSession = {
+          ...callSession,
+          status: "active" as const,
+          participants: callSession.participants.map((p) =>
+            p.id === user.id ? { ...p, isConnected: true } : p
+          ),
+        };
+        setCallSession(updatedSession);
+      }
+    } catch (error) {
+      console.error("Errore nel joining della call:", error);
+      // Gestire l'errore mostrando un messaggio all'utente
     }
   };
 
   const leaveCall = () => {
+    // Ferma la video chiamata reale
+    stopRealVideo();
+
     setIsConnected(false);
     setCallDuration(0);
     if (callSession) {
@@ -135,12 +156,15 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
     }
   };
 
+  // Utilizziamo le funzioni reali dal hook invece delle mock
   const toggleVideo = () => {
     setLocalVideoEnabled(!localVideoEnabled);
+    toggleRealVideo(); // Chiamata reale per gestire il video hardware
   };
 
   const toggleAudio = () => {
     setLocalAudioEnabled(!localAudioEnabled);
+    toggleRealAudio(); // Chiamata reale per gestire l'audio hardware
   };
 
   const formatDuration = (seconds: number) => {
@@ -225,6 +249,11 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
               <h2 className="text-2xl font-bold text-gray-800 mb-2">
                 Ready to join your Trinity call?
               </h2>
+              {videoState.error && (
+                <div className="mb-4 p-3 bg-red-100 border border-red-300 rounded-lg">
+                  <p className="text-red-700 text-sm">{videoState.error}</p>
+                </div>
+              )}
               <p className="text-gray-600">
                 {
                   callSession.participants.filter(
