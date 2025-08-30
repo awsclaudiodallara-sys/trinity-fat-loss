@@ -89,7 +89,7 @@ export class WebRTCService {
 
     // Aggiunge lo stream locale alla connessione
     if (this.localStream) {
-      this.localStream.getTracks().forEach(track => {
+      this.localStream.getTracks().forEach((track) => {
         pc.addTrack(track, this.localStream!);
       });
     }
@@ -106,7 +106,9 @@ export class WebRTCService {
   }
 
   // Crea una risposta alla chiamata
-  async createAnswer(offer: RTCSessionDescriptionInit): Promise<RTCSessionDescriptionInit> {
+  async createAnswer(
+    offer: RTCSessionDescriptionInit
+  ): Promise<RTCSessionDescriptionInit> {
     const pc = this.initializePeerConnectionWithSignaling();
     await pc.setRemoteDescription(offer);
     const answer = await pc.createAnswer();
