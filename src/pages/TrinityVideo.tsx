@@ -127,7 +127,14 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
           ...callSession,
           status: "active" as const,
           participants: callSession.participants.map((p) =>
-            p.id === user.id ? { ...p, isConnected: true } : p
+            p.id === user.id
+              ? {
+                  ...p,
+                  isConnected: true,
+                  videoEnabled: localVideoEnabled,
+                  audioEnabled: localAudioEnabled,
+                }
+              : p
           ),
         };
         setCallSession(updatedSession);
@@ -158,13 +165,37 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
 
   // Utilizziamo le funzioni reali dal hook invece delle mock
   const toggleVideo = () => {
-    setLocalVideoEnabled(!localVideoEnabled);
+    const newVideoState = !localVideoEnabled;
+    setLocalVideoEnabled(newVideoState);
     toggleRealVideo(); // Chiamata reale per gestire il video hardware
+
+    // Aggiorna anche lo stato del partecipante nella sessione
+    if (callSession) {
+      const updatedSession = {
+        ...callSession,
+        participants: callSession.participants.map((p) =>
+          p.id === user.id ? { ...p, videoEnabled: newVideoState } : p
+        ),
+      };
+      setCallSession(updatedSession);
+    }
   };
 
   const toggleAudio = () => {
-    setLocalAudioEnabled(!localAudioEnabled);
+    const newAudioState = !localAudioEnabled;
+    setLocalAudioEnabled(newAudioState);
     toggleRealAudio(); // Chiamata reale per gestire l'audio hardware
+
+    // Aggiorna anche lo stato del partecipante nella sessione
+    if (callSession) {
+      const updatedSession = {
+        ...callSession,
+        participants: callSession.participants.map((p) =>
+          p.id === user.id ? { ...p, audioEnabled: newAudioState } : p
+        ),
+      };
+      setCallSession(updatedSession);
+    }
   };
 
   const formatDuration = (seconds: number) => {
@@ -406,11 +437,25 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
                     className="relative bg-gray-800 rounded-xl overflow-hidden"
                   >
                     {participant.videoEnabled ? (
-                      <div className="w-full h-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center">
-                        <div className="text-white text-4xl">
-                          {participant.name === "You" ? "📹" : "👤"}
+                      participant.name === "You" && videoState.localStream ? (
+                        <video
+                          ref={(video) => {
+                            if (video && videoState.localStream) {
+                              video.srcObject = videoState.localStream;
+                            }
+                          }}
+                          autoPlay
+                          muted
+                          playsInline
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center">
+                          <div className="text-white text-4xl">
+                            {participant.name === "You" ? "📹" : "👤"}
+                          </div>
                         </div>
-                      </div>
+                      )
                     ) : (
                       <div className="w-full h-full bg-gray-700 flex items-center justify-center">
                         <div className="text-center text-white">
@@ -427,6 +472,14 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
                       <span className="text-white text-sm font-medium">
                         {participant.name}
                       </span>
+                      {participant.name === "You" &&
+                        videoState.localStream &&
+                        participant.videoEnabled && (
+                          <div className="flex items-center space-x-1">
+                            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                            <span className="text-xs text-white">Live</span>
+                          </div>
+                        )}
                       {participant.isHost && (
                         <span className="bg-yellow-500 text-black text-xs px-2 py-1 rounded-full">
                           Host
