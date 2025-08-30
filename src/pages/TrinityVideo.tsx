@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import {
   ArrowLeft,
   Video,
@@ -16,6 +16,8 @@ import {
 import { useVideoCall } from "../lib/useVideoCall";
 import { useWebRTCSignaling } from "../lib/useWebRTCSignaling";
 import { VideoCallScheduling } from "../components/video/VideoCallScheduling";
+import { useAuth } from "../hooks/useAuth";
+import { dashboardService } from "../lib/supabase";
 
 interface VideoCallParticipant {
   id: string;
@@ -41,13 +43,49 @@ interface TrinityVideoProps {
 }
 
 export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
-  // Mock user for now - will be replaced with real auth
-  const user = useMemo(() => ({ id: "current_user", name: "You" }), []);
+  // Get real user data from auth
+  const { user } = useAuth();
+
+  // State for trio data
+  const [trioData, setTrioData] = useState<{
+    id: string;
+    members: { id: string; name: string }[];
+  } | null>(null);
+  const [isLoadingTrio, setIsLoadingTrio] = useState(true);
 
   const [callSession, setCallSession] = useState<VideoCallSession | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [localVideoEnabled, setLocalVideoEnabled] = useState(true);
   const [localAudioEnabled, setLocalAudioEnabled] = useState(true);
+
+  // Load trio data on mount
+  useEffect(() => {
+    const loadTrioData = async () => {
+      if (!user) {
+        setIsLoadingTrio(false);
+        return;
+      }
+
+      try {
+        const status = await dashboardService.getUserStatus(user.id);
+        if (status.status === "in_trio" && status.trio) {
+          setTrioData({
+            id: status.trio.id,
+            members: status.trio.members || [],
+          });
+        } else {
+          console.log("User not in trio, status:", status.status);
+        }
+      } catch (error) {
+        console.error("Error loading trio data:", error);
+      } finally {
+        setIsLoadingTrio(false);
+      }
+    };
+
+    loadTrioData();
+  }, [user]);
+
   const [isConnected, setIsConnected] = useState(false);
   const [callDuration, setCallDuration] = useState(0);
 
@@ -62,7 +100,7 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
 
   // Hook per gestire il signaling WebRTC P2P
   const callId = "trinity_call_demo"; // In produzione, sarà dinamico
-  const currentUserId = user.id;
+  const currentUserId = user?.id || "anonymous"; // Safe access to user.id
   const {
     state: signalingState,
     startCall: startP2PCall,
@@ -93,8 +131,8 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
           isHost: false,
         },
         {
-          id: user.id,
-          name: user.name,
+          id: user?.id || "anonymous",
+          name: user?.email || "Current User", // Use email as name or fallback
           videoEnabled: localVideoEnabled,
           audioEnabled: localAudioEnabled,
           isConnected: false,
@@ -143,7 +181,7 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
           ...callSession,
           status: "active" as const,
           participants: callSession.participants.map((p) =>
-            p.id === user.id
+            p.id === user?.id
               ? {
                   ...p,
                   isConnected: true,
@@ -175,7 +213,7 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
         ...callSession,
         status: "ended" as const,
         participants: callSession.participants.map((p) =>
-          p.id === user.id ? { ...p, isConnected: false } : p
+          p.id === user?.id ? { ...p, isConnected: false } : p
         ),
       };
       setCallSession(updatedSession);
@@ -193,7 +231,7 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
       const updatedSession = {
         ...callSession,
         participants: callSession.participants.map((p) =>
-          p.id === user.id ? { ...p, videoEnabled: newVideoState } : p
+          p.id === user?.id ? { ...p, videoEnabled: newVideoState } : p
         ),
       };
       setCallSession(updatedSession);
@@ -210,7 +248,7 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
       const updatedSession = {
         ...callSession,
         participants: callSession.participants.map((p) =>
-          p.id === user.id ? { ...p, audioEnabled: newAudioState } : p
+          p.id === user?.id ? { ...p, audioEnabled: newAudioState } : p
         ),
       };
       setCallSession(updatedSession);
@@ -239,6 +277,23 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Preparing Trinity Video Call...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Return early if no user
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">Please log in to access video calls</p>
+          <button
+            onClick={onGoBack}
+            className="mt-2 text-purple-600 hover:text-purple-800"
+          >
+            Go back
+          </button>
         </div>
       </div>
     );
@@ -291,17 +346,36 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
       </div>
 
       {/* Video Call Scheduling Section */}
-      {!isConnected && (
+      {!isConnected && user && (
         <div className="bg-white border-b border-gray-200 px-4 py-4">
-          <VideoCallScheduling
-            trioId="trinity_trio_demo" // In produzione sarà dinamico
-            currentUserId={user.id}
-            onJoinCall={(callId) => {
-              console.log("Joining scheduled call:", callId);
-              // Qui si può avviare automaticamente la call
-              joinCall();
-            }}
-          />
+          {isLoadingTrio ? (
+            <div className="text-center py-4">
+              <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
+              <p className="text-gray-600 mt-2">Loading trio...</p>
+            </div>
+          ) : trioData ? (
+            <VideoCallScheduling
+              trioId={trioData.id} // ID reale del trio
+              currentUserId={user.id}
+              onJoinCall={(callId) => {
+                console.log("Joining scheduled call:", callId);
+                // Qui si può avviare automaticamente la call
+                joinCall();
+              }}
+            />
+          ) : (
+            <div className="text-center py-4">
+              <p className="text-gray-600">
+                You need to be in a trio to schedule video calls.
+              </p>
+              <button
+                onClick={onGoBack}
+                className="mt-2 text-purple-600 hover:text-purple-800"
+              >
+                Go back to dashboard
+              </button>
+            </div>
+          )}
         </div>
       )}
 
@@ -322,7 +396,7 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
               <p className="text-gray-600">
                 {
                   callSession.participants.filter(
-                    (p) => p.isConnected && p.id !== user.id
+                    (p) => p.isConnected && user && p.id !== user.id
                   ).length
                 }{" "}
                 members waiting

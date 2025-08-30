@@ -5,7 +5,7 @@ import { dashboardService } from "../../lib/supabase";
 
 interface VideoCallStatus {
   isScheduled: boolean;
-  scheduledTime?: string;
+  scheduledTime?: string; // Opzionale - solo se c'è una call programmata
   participants: {
     id: string;
     name: string;
@@ -13,7 +13,7 @@ interface VideoCallStatus {
     online: boolean;
   }[];
   callInProgress: boolean;
-  nextCallSuggestion?: string;
+  nextCallSuggestion?: string; // Opzionale - solo se il sistema suggerisce una data
 }
 
 interface VideoCallWidgetProps {
@@ -46,12 +46,14 @@ export const VideoCallWidget: React.FC<VideoCallWidgetProps> = ({
             "Using REAL members from dashboardService:",
             status.trio.members
           );
-          participants = status.trio.members.map((member: any) => ({
-            id: member.id,
-            name: member.name || `Member ${member.id.slice(-4)}`,
-            confirmed: true,
-            online: Math.random() > 0.3,
-          }));
+          participants = status.trio.members.map(
+            (member: { id: string; name?: string }) => ({
+              id: member.id,
+              name: member.name || `Member ${member.id.slice(-4)}`,
+              confirmed: true,
+              online: Math.random() > 0.3,
+            })
+          );
         } else {
           console.log("Using fallback members - no trio found");
           participants = [
@@ -71,16 +73,14 @@ export const VideoCallWidget: React.FC<VideoCallWidgetProps> = ({
           ];
         }
 
+        // Per un trio nuovo, non ci dovrebbero essere call programmate
+        // In futuro questo leggerà dal database reale
         const mockStatus: VideoCallStatus = {
-          isScheduled: true,
-          scheduledTime: new Date(
-            Date.now() + 2 * 24 * 60 * 60 * 1000
-          ).toISOString(),
+          isScheduled: false, // CAMBIATO: trio nuovo non ha call programmate
+          scheduledTime: undefined, // CAMBIATO: nessuna data fissata
           participants,
           callInProgress: false,
-          nextCallSuggestion: new Date(
-            Date.now() + 7 * 24 * 60 * 60 * 1000
-          ).toISOString(),
+          nextCallSuggestion: undefined, // CAMBIATO: nessun suggerimento automatico
         };
 
         setCallStatus(mockStatus);
@@ -88,10 +88,8 @@ export const VideoCallWidget: React.FC<VideoCallWidgetProps> = ({
       } catch (error) {
         console.error("Error loading trio members:", error);
         const fallbackStatus: VideoCallStatus = {
-          isScheduled: true,
-          scheduledTime: new Date(
-            Date.now() + 2 * 24 * 60 * 60 * 1000
-          ).toISOString(),
+          isScheduled: false, // CAMBIATO: trio nuovo non ha call programmate
+          scheduledTime: undefined, // CAMBIATO: nessuna data fissata
           participants: [
             {
               id: "fallback1",
@@ -108,9 +106,7 @@ export const VideoCallWidget: React.FC<VideoCallWidgetProps> = ({
             { id: "you", name: "Tu", confirmed: true, online: true },
           ],
           callInProgress: false,
-          nextCallSuggestion: new Date(
-            Date.now() + 7 * 24 * 60 * 60 * 1000
-          ).toISOString(),
+          nextCallSuggestion: undefined, // CAMBIATO: nessun suggerimento automatico
         };
         setCallStatus(fallbackStatus);
         setIsLoading(false);
@@ -233,13 +229,16 @@ export const VideoCallWidget: React.FC<VideoCallWidgetProps> = ({
         </div>
       ) : (
         <div className="mb-4">
-          <div className="bg-amber-50 rounded-lg p-3">
+          <div className="bg-gray-50 rounded-lg p-3">
             <div className="flex items-center space-x-2">
-              <Calendar className="h-4 w-4 text-amber-600" />
-              <span className="text-amber-800 text-sm font-medium">
-                No call scheduled this week
+              <Calendar className="h-4 w-4 text-gray-500" />
+              <span className="text-gray-700 text-sm font-medium">
+                No weekly call scheduled yet
               </span>
             </div>
+            <p className="text-gray-600 text-xs mt-1">
+              Schedule your first Trinity support session
+            </p>
           </div>
         </div>
       )}
@@ -311,7 +310,7 @@ export const VideoCallWidget: React.FC<VideoCallWidgetProps> = ({
             className="w-full flex items-center justify-center space-x-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-3 rounded-lg transition-colors duration-200 font-medium"
           >
             <Calendar className="h-4 w-4" />
-            <span>Schedule Weekly Call</span>
+            <span>Schedule First Weekly Call</span>
           </button>
         )}
       </div>
@@ -319,7 +318,7 @@ export const VideoCallWidget: React.FC<VideoCallWidgetProps> = ({
       <div className="mt-3 text-xs text-gray-500 text-center">
         {callStatus.isScheduled
           ? "Weekly Trinity support session"
-          : "Weekly calls help maintain accountability"}
+          : "Weekly calls help maintain accountability and motivation"}
       </div>
     </div>
   );
