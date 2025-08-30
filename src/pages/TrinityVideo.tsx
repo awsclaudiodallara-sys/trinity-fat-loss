@@ -62,10 +62,10 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
   // Hook per gestire il signaling WebRTC P2P
   const callId = "trinity_call_demo"; // In produzione, sarà dinamico
   const currentUserId = user.id;
-  const { 
-    state: signalingState, 
-    startCall: startP2PCall, 
-    endCall: endP2PCall 
+  const {
+    state: signalingState,
+    startCall: startP2PCall,
+    endCall: endP2PCall,
   } = useWebRTCSignaling(callId, currentUserId);
 
   // Mock data per ora - sarà sostituito con dati reali
@@ -163,7 +163,7 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
   const leaveCall = () => {
     // Ferma la video chiamata reale
     stopRealVideo();
-    
+
     // Termina la connessione P2P
     endP2PCall();
 
@@ -311,7 +311,7 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
                 }{" "}
                 members waiting
               </p>
-              
+
               {/* Stato connessione P2P */}
               {signalingState.isConnecting && (
                 <div className="mt-2 flex items-center space-x-2 text-blue-600">
@@ -319,14 +319,14 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
                   <span className="text-sm">Connecting to peer...</span>
                 </div>
               )}
-              
+
               {signalingState.isConnected && (
                 <div className="mt-2 flex items-center space-x-2 text-green-600">
                   <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                   <span className="text-sm">P2P Connected</span>
                 </div>
               )}
-              
+
               {signalingState.error && (
                 <div className="mt-2 text-red-600 text-sm">
                   P2P Error: {signalingState.error}
@@ -488,7 +488,8 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
                           playsInline
                           className="w-full h-full object-cover"
                         />
-                      ) : participant.name !== "You" && signalingState.remoteStream ? (
+                      ) : participant.name !== "You" &&
+                        signalingState.remoteStream ? (
                         <video
                           ref={(video) => {
                             if (video && signalingState.remoteStream) {
