@@ -330,8 +330,34 @@ export class AchievementTriggers {
   }
 
   static async checkTaskAchievements(userId: string) {
-    // TODO: Implementare controllo achievement task
-    console.log("✅ Checking task achievements for user:", userId);
+    try {
+      console.log("✅ Checking task achievements for user:", userId);
+
+      // 1. Controlla se oggi ha completato tutti i 7 task (Perfect Day)
+      const today = new Date().toISOString().split("T")[0];
+      const { data: todayTasks, error: todayError } = await supabase
+        .from("daily_tasks")
+        .select("completed")
+        .eq("user_id", userId)
+        .eq("task_date", today);
+
+      if (!todayError && todayTasks) {
+        const completedToday = todayTasks.filter((t) => t.completed).length;
+        console.log(`📊 Tasks completed today: ${completedToday}/7`);
+
+        if (completedToday === 7) {
+          await this.onPerfectDayAchieved(userId);
+        }
+      }
+
+      // 2. Controlla streak di giorni consecutivi con 7/7 task
+      await this.checkTaskStreak(userId);
+
+      // 3. Controlla achievement basati su task totali completati
+      await this.checkTotalTaskAchievements(userId);
+    } catch (error) {
+      console.error("Error in checkTaskAchievements:", error);
+    }
   }
 
   static async checkTrioAchievements(userId: string) {
@@ -366,8 +392,83 @@ export class AchievementTriggers {
   }
 
   static async onPerfectDayAchieved(userId: string) {
-    // TODO: Implementare logica per giorno perfetto
-    console.log("🌟 Perfect day achieved by user:", userId);
+    try {
+      console.log("🌟 Perfect day achieved by user:", userId);
+
+      // Chiama la funzione generica per controllare tutti gli achievement
+      await this.checkAchievementProgress(userId);
+
+      // Invia notifica speciale per perfect day
+      this.showAchievementNotification(
+        "🌟 Perfect Day! Tutti i 7 task completati!"
+      );
+    } catch (error) {
+      console.error("Error in onPerfectDayAchieved:", error);
+    }
+  }
+
+  static async checkTaskStreak(userId: string) {
+    try {
+      // Calcola quanti giorni consecutivi l'utente ha completato 7/7 task
+      let streak = 0;
+      const today = new Date();
+
+      for (let i = 0; i < 365; i++) {
+        // Controlla fino a 1 anno
+        const checkDate = new Date(today);
+        checkDate.setDate(today.getDate() - i);
+        const dateStr = checkDate.toISOString().split("T")[0];
+
+        const { data: dayTasks, error } = await supabase
+          .from("daily_tasks")
+          .select("completed")
+          .eq("user_id", userId)
+          .eq("task_date", dateStr);
+
+        if (!error && dayTasks) {
+          const completedTasks = dayTasks.filter((t) => t.completed).length;
+          if (completedTasks === 7) {
+            streak++;
+          } else {
+            break; // Streak interrotta
+          }
+        } else {
+          break; // Nessun dato per questo giorno
+        }
+      }
+
+      console.log(`🔥 Task streak: ${streak} giorni consecutivi`);
+
+      // Controlla achievement basati su streak
+      if (streak >= 3) {
+        await this.checkAchievementProgress(userId);
+      }
+    } catch (error) {
+      console.error("Error in checkTaskStreak:", error);
+    }
+  }
+
+  static async checkTotalTaskAchievements(userId: string) {
+    try {
+      // Conta il totale di task completati dall'utente
+      const { data: allTasks, error } = await supabase
+        .from("daily_tasks")
+        .select("completed")
+        .eq("user_id", userId)
+        .eq("completed", true);
+
+      if (!error && allTasks) {
+        const totalCompleted = allTasks.length;
+        console.log(`📈 Total tasks completed: ${totalCompleted}`);
+
+        // Ogni 100 task, controlla achievement
+        if (totalCompleted % 100 === 0 && totalCompleted > 0) {
+          await this.checkAchievementProgress(userId);
+        }
+      }
+    } catch (error) {
+      console.error("Error in checkTotalTaskAchievements:", error);
+    }
   }
 
   static async showStepsProgress(userId: string, steps: number) {

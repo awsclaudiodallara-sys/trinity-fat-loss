@@ -5,6 +5,7 @@ import {
   type DailyTask as DbDailyTask,
 } from "../../lib/services/dailyTasks";
 import { supabase } from "../../lib/supabase";
+import { AchievementTriggers } from "../../services/achievementTriggers";
 
 interface Task extends DbDailyTask {
   name: string;
@@ -413,6 +414,23 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({
       );
       setTasks(updatedTasks);
       updateCompletionStats(updatedTasks);
+
+      // 🎯 TRIGGER ACHIEVEMENT SYSTEM
+      if (!task.completed) {
+        // Se il task è stato appena completato
+        try {
+          await AchievementTriggers.onDailyTaskCompleted(user.id, {
+            taskId,
+            taskName: task.name,
+            taskType: task.task_type,
+            completedAt: new Date().toISOString(),
+            totalCompletedToday: updatedTasks.filter((t) => t.completed).length,
+          });
+        } catch (achievementError) {
+          console.warn("Achievement trigger failed:", achievementError);
+          // Non bloccare l'UI per errori achievement
+        }
+      }
     } catch (err) {
       console.error("Error saving task:", err);
       // Gestione corretta dell'errore di tipo unknown

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { supabase } from "../../lib/supabase";
+import { AchievementTriggers } from "../../services/achievementTriggers";
 
 // Define the weekly task structure based on database logs
 interface WeeklyTask {
@@ -431,6 +432,25 @@ export const WeeklyCheckIn: React.FC<WeeklyCheckInProps> = ({
       if (onTasksUpdated) {
         onTasksUpdated();
       }
+
+      // 🎯 TRIGGER ACHIEVEMENT SYSTEM
+      if (newCompleted) {
+        // Se il task è stato appena completato
+        try {
+          await AchievementTriggers.onDailyTaskCompleted(user.id, {
+            taskId,
+            taskName: task.name,
+            taskType: task.task_type,
+            isWeeklyTask: true,
+            completedAt: new Date().toISOString(),
+            totalCompletedThisWeek: updatedTasks.filter((t) => t.completed)
+              .length,
+          });
+        } catch (achievementError) {
+          console.warn("Achievement trigger failed:", achievementError);
+          // Non bloccare l'UI per errori achievement
+        }
+      }
     } catch (error) {
       console.error("Error updating task:", error);
       setError("Failed to update task.");
@@ -462,6 +482,28 @@ export const WeeklyCheckIn: React.FC<WeeklyCheckInProps> = ({
       // Notify parent component to update weekly progress (value changes can affect completion)
       if (onTasksUpdated) {
         onTasksUpdated();
+      }
+
+      // 🎯 TRIGGER ACHIEVEMENT SYSTEM for body measurements
+      const task = weeklyTasks.find((t) => t.id === taskId);
+      if (
+        task &&
+        value !== null &&
+        [
+          "weight_measurement",
+          "waist_measurement",
+          "neck_measurement",
+        ].includes(task.task_type)
+      ) {
+        try {
+          await AchievementTriggers.onBodyMeasurementAdded(user.id);
+        } catch (achievementError) {
+          console.warn(
+            "Body measurement achievement trigger failed:",
+            achievementError
+          );
+          // Non bloccare l'UI per errori achievement
+        }
       }
     } catch (error) {
       console.error("Error updating task value:", error);
