@@ -7,9 +7,7 @@ import {
   MicOff,
   Phone,
   PhoneOff,
-  Monitor,
   Users,
-  MessageCircle,
   Clock,
 } from "lucide-react";
 import { useVideoCall } from "../lib/useVideoCall";
@@ -948,14 +946,6 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
                   ) : (
                     <MicOff className="h-6 w-6" />
                   )}
-                </button>
-
-                <button className="p-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors">
-                  <Monitor className="h-6 w-6" />
-                </button>
-
-                <button className="p-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors">
-                  <MessageCircle className="h-6 w-6" />
                 </button>
 
                 <button
