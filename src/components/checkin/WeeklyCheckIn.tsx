@@ -29,9 +29,13 @@ interface WeeklyTaskWithUI extends WeeklyTask {
   hasValue?: boolean;
 }
 
-type WeeklyCheckInProps = Record<string, never>;
+interface WeeklyCheckInProps {
+  onTasksUpdated?: () => void;
+}
 
-export const WeeklyCheckIn: React.FC<WeeklyCheckInProps> = () => {
+export const WeeklyCheckIn: React.FC<WeeklyCheckInProps> = ({
+  onTasksUpdated,
+}) => {
   const { user } = useAuth();
   const [loading, setLoading] = useState<boolean>(true);
   const [saving, setSaving] = useState(false);
@@ -422,6 +426,11 @@ export const WeeklyCheckIn: React.FC<WeeklyCheckInProps> = () => {
           : t
       );
       setWeeklyTasks(updatedTasks);
+
+      // Notify parent component to update weekly progress
+      if (onTasksUpdated) {
+        onTasksUpdated();
+      }
     } catch (error) {
       console.error("Error updating task:", error);
       setError("Failed to update task.");
@@ -449,6 +458,11 @@ export const WeeklyCheckIn: React.FC<WeeklyCheckInProps> = () => {
         t.id === taskId ? { ...t, actual_value: value } : t
       );
       setWeeklyTasks(updatedTasks);
+
+      // Notify parent component to update weekly progress (value changes can affect completion)
+      if (onTasksUpdated) {
+        onTasksUpdated();
+      }
     } catch (error) {
       console.error("Error updating task value:", error);
       setError("Failed to update task value.");

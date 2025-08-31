@@ -523,6 +523,7 @@ export const dashboardService = {
     percentage: number;
   } | null> {
     try {
+      // Calculate week start (Monday) for current week
       const weekStart = new Date();
       const day = weekStart.getDay();
       const diff = weekStart.getDate() - day + (day === 0 ? -6 : 1);
@@ -530,6 +531,7 @@ export const dashboardService = {
       weekStart.setHours(0, 0, 0, 0);
       const formattedWeekStart = weekStart.toISOString().split("T")[0];
 
+      // Get all weekly tasks for current user and week
       const { data, error } = await supabase
         .from("weekly_tasks")
         .select("*")
@@ -538,18 +540,10 @@ export const dashboardService = {
 
       if (error) throw error;
 
-      const totalTasks = 7;
-      let completedTasks = 0;
-
-      if (data && data.length > 0) {
-        completedTasks += data[0].weight !== null ? 1 : 0;
-        completedTasks += data[0].waist_circumference !== null ? 1 : 0;
-        completedTasks += data[0].neck_circumference !== null ? 1 : 0;
-        completedTasks += data[0].routine_pesi_1 ? 1 : 0;
-        completedTasks += data[0].routine_pesi_2 ? 1 : 0;
-        completedTasks += data[0].routine_pesi_3 ? 1 : 0;
-        completedTasks += data[0].weekly_call ? 1 : 0;
-      }
+      // Count completed tasks using new schema
+      const totalTasks = data?.length || 0;
+      const completedTasks =
+        data?.filter((task) => task.completed === true).length || 0;
 
       const percentage =
         totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;

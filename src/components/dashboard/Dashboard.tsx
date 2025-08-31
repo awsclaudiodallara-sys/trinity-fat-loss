@@ -108,6 +108,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
     });
   };
 
+  const handleWeeklyTasksUpdated = async () => {
+    if (!user) return;
+    try {
+      const progress = await dashboardService.getWeeklyProgress(user.id);
+      setWeeklyProgress(progress);
+    } catch (err) {
+      console.error("Failed to fetch weekly progress", err);
+    }
+  };
+
   const goToMatchingStatus = () => {
     if (onGoToMatching) {
       onGoToMatching();
@@ -245,23 +255,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <DailyCheckIn onTasksUpdated={handleDailyTasksUpdated} />
           </div>
 
-          {/* Trinity Communication Hub */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Chat Preview */}
-            <ChatPreview
-              trioId={userStatus.trio?.id || ""}
-              currentUserId={user?.id || ""}
-              onOpenChat={onGoToChat}
-            />
-
-            {/* Video Call Widget */}
-            <VideoCallWidget
-              trioId={userStatus.trio?.id || ""}
-              currentUserId={user?.id || ""}
-              onOpenVideo={onGoToVideo}
-            />
-          </div>
-
           {/* Weekly Progress */}
           {weeklyProgress && (
             <div className="bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-white/20">
@@ -287,9 +280,25 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </div>
           )}
 
-          {/* Embed Weekly Check-in */}
+          {/* Weekly Check-in */}
           <div className="bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-white/20">
-            <WeeklyCheckIn />
+            <WeeklyCheckIn onTasksUpdated={handleWeeklyTasksUpdated} />
+          </div>
+
+          {/* Trinity Communication Hub */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Chat Preview */}
+            <ChatPreview
+              trioId={userStatus.trio?.id || ""}
+              currentUserId={user?.id || ""}
+              onOpenChat={onGoToChat}
+            />
+
+            {/* Video Call Widget */}
+            <VideoCallWidget
+              currentUserId={user?.id || ""}
+              onOpenVideo={onGoToVideo}
+            />
           </div>
 
           {/* Body Composition Analytics Dashboard */}
