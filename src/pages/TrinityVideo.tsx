@@ -100,6 +100,14 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
     console.log("VideoState changed:", videoState);
   }, [videoState]);
 
+  // Auto-start video quando la pagina si carica per il test
+  useEffect(() => {
+    if (!videoState.localStream && !videoState.isLoading && !videoState.error) {
+      console.log("Auto-starting video for testing...");
+      startRealVideo();
+    }
+  }, [videoState.localStream, videoState.isLoading, videoState.error, startRealVideo]);
+
   // Refs per evitare re-render dei video
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRefs = useRef<{ [key: string]: HTMLVideoElement | null }>(
@@ -154,24 +162,68 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
     }, 500);
   }, [user, trioData, localVideoEnabled, localAudioEnabled]);
 
+  // TEMP: Crea una sessione di default per testing quando connesso
+  useEffect(() => {
+    if (isConnected && !callSession && trioData && user) {
+      const defaultSession: VideoCallSession = {
+        id: "demo-session",
+        scheduledTime: new Date().toISOString(),
+        duration: 0,
+        status: "active",
+        participants: trioData.members.map((member) => ({
+          id: member.id,
+          name: member.name,
+          isConnected: member.id === user.id,
+          videoEnabled: member.id === user.id ? localVideoEnabled : false,
+          audioEnabled: member.id === user.id ? localAudioEnabled : false,
+          isHost: member.id === user.id,
+        })),
+        agenda: ["Test della camera", "Test dell'audio", "Test dei toggle"],
+      };
+      setCallSession(defaultSession);
+    }
+  }, [
+    isConnected,
+    callSession,
+    trioData,
+    user,
+    localVideoEnabled,
+    localAudioEnabled,
+  ]);
+
   // Effect per gestire il video locale in modo stabile
   useEffect(() => {
     console.log("useEffect localVideo:", {
       hasRef: !!localVideoRef.current,
       hasStream: !!videoState.localStream,
       localVideoEnabled,
+      streamTracks: videoState.localStream?.getTracks().length || 0,
     });
 
-    if (localVideoRef.current && videoState.localStream && localVideoEnabled) {
+    if (localVideoRef.current && videoState.localStream) {
       const video = localVideoRef.current;
       if (video.srcObject !== videoState.localStream) {
+        console.log("Setting video srcObject");
         video.srcObject = videoState.localStream;
-        video.play().catch((error) => {
+        
+        // Force refresh
+        video.load();
+        
+        video.play().then(() => {
+          console.log("Video playing successfully");
+        }).catch((error) => {
           console.error("Error playing video:", error);
         });
+      } else {
+        console.log("Video srcObject already set correctly");
       }
+    } else {
+      console.log("Missing ref or stream:", {
+        hasRef: !!localVideoRef.current,
+        hasStream: !!videoState.localStream
+      });
     }
-  }, [videoState.localStream, localVideoEnabled]);
+  }, [videoState.localStream]);
 
   // Effect per gestire i video remoti in modo stabile
   useEffect(() => {
