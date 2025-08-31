@@ -177,6 +177,7 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
       };
       setCallSession(defaultSession);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     isConnected,
     callSession,
@@ -286,7 +287,8 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
         hasStream: !!videoState.localStream,
       });
     }
-  }, [videoState.localStream]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [videoState.localStream]); // localVideoEnabled omesso intenzionalmente per evitare loop
 
   // Effect per gestire i video remoti in modo stabile
   useEffect(() => {
