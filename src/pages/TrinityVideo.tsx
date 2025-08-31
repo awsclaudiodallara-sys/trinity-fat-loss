@@ -106,10 +106,16 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
       console.log("Auto-starting video for testing...");
       startRealVideo();
     }
-  }, [videoState.localStream, videoState.isLoading, videoState.error, startRealVideo]);
+  }, [
+    videoState.localStream,
+    videoState.isLoading,
+    videoState.error,
+    startRealVideo,
+  ]);
 
   // Refs per evitare re-render dei video
-  const localVideoRef = useRef<HTMLVideoElement>(null);
+  const localVideoRef = useRef<HTMLVideoElement>(null); // Per preview
+  const inCallVideoRef = useRef<HTMLVideoElement>(null); // Per griglia partecipanti
   const remoteVideoRefs = useRef<{ [key: string]: HTMLVideoElement | null }>(
     {}
   );
@@ -191,36 +197,50 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
     localAudioEnabled,
   ]);
 
-  // Effect per gestire il video locale in modo stabile
+  // Effect per gestire il video locale in modo stabile (preview e in-call)
   useEffect(() => {
     console.log("useEffect localVideo:", {
-      hasRef: !!localVideoRef.current,
+      hasPreviewRef: !!localVideoRef.current,
+      hasInCallRef: !!inCallVideoRef.current,
       hasStream: !!videoState.localStream,
       localVideoEnabled,
       streamTracks: videoState.localStream?.getTracks().length || 0,
     });
 
-    if (localVideoRef.current && videoState.localStream) {
-      const video = localVideoRef.current;
+    const assignStreamToVideo = (video: HTMLVideoElement, label: string) => {
       if (video.srcObject !== videoState.localStream) {
-        console.log("Setting video srcObject");
+        console.log(`Setting video srcObject for ${label}`);
         video.srcObject = videoState.localStream;
-        
+
         // Force refresh
         video.load();
-        
-        video.play().then(() => {
-          console.log("Video playing successfully");
-        }).catch((error) => {
-          console.error("Error playing video:", error);
-        });
+
+        video
+          .play()
+          .then(() => {
+            console.log(`Video playing successfully for ${label}`);
+          })
+          .catch((error) => {
+            console.error(`Error playing video for ${label}:`, error);
+          });
       } else {
-        console.log("Video srcObject already set correctly");
+        console.log(`Video srcObject already set correctly for ${label}`);
+      }
+    };
+
+    // Assegna stream a entrambi i video se esistono
+    if (videoState.localStream) {
+      if (localVideoRef.current) {
+        assignStreamToVideo(localVideoRef.current, "preview");
+      }
+      if (inCallVideoRef.current) {
+        assignStreamToVideo(inCallVideoRef.current, "in-call");
       }
     } else {
-      console.log("Missing ref or stream:", {
-        hasRef: !!localVideoRef.current,
-        hasStream: !!videoState.localStream
+      console.log("Missing stream:", {
+        hasPreviewRef: !!localVideoRef.current,
+        hasInCallRef: !!inCallVideoRef.current,
+        hasStream: !!videoState.localStream,
       });
     }
   }, [videoState.localStream]);
@@ -668,93 +688,180 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
           <div className="h-full flex flex-col">
             {/* Participants Grid */}
             <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-              {callSession.participants
-                .filter((p) => p.isConnected)
-                .map((participant) => (
-                  <div
-                    key={participant.id}
-                    className="relative bg-gray-800 rounded-xl overflow-hidden"
-                  >
-                    {/* Mostra sempre il video se disponibile, con overlay se disabilitato */}
-                    {participant.id === user?.id && videoState.localStream ? (
-                      <div className="relative w-full h-full">
-                        <video
-                          ref={localVideoRef}
-                          autoPlay
-                          muted
-                          playsInline
-                          className="w-full h-full object-cover"
-                        />
-                        {!participant.videoEnabled && (
-                          <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center">
-                            <VideoOff className="h-8 w-8 text-white" />
-                          </div>
-                        )}
-                      </div>
-                    ) : participant.id !== user?.id &&
-                      signalingState.remoteStream ? (
-                      <div className="relative w-full h-full">
-                        <video
-                          ref={(video) => {
-                            if (video && signalingState.remoteStream) {
-                              remoteVideoRefs.current[participant.id] = video;
+              {(() => {
+                const connectedParticipants = callSession.participants.filter(
+                  (p) => p.isConnected
+                );
+                console.log("Rendering participants grid:", {
+                  totalParticipants: callSession.participants.length,
+                  connectedParticipants: connectedParticipants.length,
+                  participants: callSession.participants.map((p) => ({
+                    id: p.id,
+                    name: p.name,
+                    isConnected: p.isConnected,
+                    isCurrentUser: p.id === user?.id,
+                  })),
+                  currentUserId: user?.id,
+                  hasLocalStream: !!videoState.localStream,
+                });
+
+                // Debug per ogni partecipante connesso
+                connectedParticipants.forEach((participant, index) => {
+                  console.log(`Participant ${index}:`, {
+                    id: participant.id,
+                    name: participant.name,
+                    isCurrentUser: participant.id === user?.id,
+                    willShowVideo:
+                      participant.id === user?.id && !!videoState.localStream,
+                    videoEnabled: participant.videoEnabled,
+                    hasLocalStream: !!videoState.localStream,
+                  });
+                });
+
+                return connectedParticipants;
+              })().map((participant) => (
+                <div
+                  key={participant.id}
+                  className="relative bg-gray-800 rounded-xl overflow-hidden"
+                >
+                  {/* Mostra sempre il video se disponibile, con overlay se disabilitato */}
+                  {participant.id === user?.id && videoState.localStream ? (
+                    <div className="relative w-full h-full">
+                      <video
+                        ref={(video) => {
+                          if (video) {
+                            console.log(
+                              "🎥 Setting inCallVideoRef for current user:",
+                              {
+                                participantId: participant.id,
+                                userId: user?.id,
+                                hasStream: !!videoState.localStream,
+                                participantName: participant.name,
+                              }
+                            );
+                            inCallVideoRef.current = video;
+
+                            // Assign stream immediately if available
+                            if (
+                              videoState.localStream &&
+                              video.srcObject !== videoState.localStream
+                            ) {
+                              console.log(
+                                "🚀 Assigning stream directly in ref callback for in-call video"
+                              );
+                              video.srcObject = videoState.localStream;
+                              video.load();
+                              video
+                                .play()
+                                .then(() => {
+                                  console.log(
+                                    "✅ In-call video playing successfully from ref callback"
+                                  );
+                                })
+                                .catch((error) => {
+                                  console.error(
+                                    "❌ Error playing in-call video from ref callback:",
+                                    error
+                                  );
+                                });
                             }
-                          }}
-                          autoPlay
-                          playsInline
-                          className="w-full h-full object-cover"
-                        />
-                        {!participant.videoEnabled && (
-                          <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center">
-                            <VideoOff className="h-8 w-8 text-white" />
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="w-full h-full bg-gray-700 flex items-center justify-center">
-                        <div className="text-center text-white">
-                          <VideoOff className="h-8 w-8 mx-auto mb-2" />
-                          <p className="text-sm">{participant.name}</p>
-                          <p className="text-xs opacity-75">Camera off</p>
+                          }
+                        }}
+                        autoPlay
+                        muted
+                        playsInline
+                        className="w-full h-full object-cover"
+                      />
+                      {!participant.videoEnabled && (
+                        <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center">
+                          <VideoOff className="h-8 w-8 text-white" />
                         </div>
+                      )}
+                    </div>
+                  ) : participant.id !== user?.id &&
+                    signalingState.remoteStream ? (
+                    <div className="relative w-full h-full">
+                      <video
+                        ref={(video) => {
+                          if (video && signalingState.remoteStream) {
+                            remoteVideoRefs.current[participant.id] = video;
+                          }
+                        }}
+                        autoPlay
+                        playsInline
+                        className="w-full h-full object-cover"
+                      />
+                      {!participant.videoEnabled && (
+                        <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center">
+                          <VideoOff className="h-8 w-8 text-white" />
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    (() => {
+                      console.log(
+                        "❌ Showing fallback (no video) for participant:",
+                        {
+                          participantId: participant.id,
+                          participantName: participant.name,
+                          isCurrentUser: participant.id === user?.id,
+                          hasLocalStream: !!videoState.localStream,
+                          hasRemoteStream: !!signalingState.remoteStream,
+                          condition1:
+                            participant.id === user?.id &&
+                            videoState.localStream,
+                          condition2:
+                            participant.id !== user?.id &&
+                            signalingState.remoteStream,
+                        }
+                      );
+                      return (
+                        <div className="w-full h-full bg-gray-700 flex items-center justify-center">
+                          <div className="text-center text-white">
+                            <VideoOff className="h-8 w-8 mx-auto mb-2" />
+                            <p className="text-sm">{participant.name}</p>
+                            <p className="text-xs opacity-75">Camera off</p>
+                          </div>
+                        </div>
+                      );
+                    })()
+                  )}
+
+                  {/* Participant Info */}
+                  <div className="absolute bottom-4 left-4 flex items-center space-x-2">
+                    <span className="text-white text-sm font-medium">
+                      {participant.id === user?.id ? "You" : participant.name}
+                    </span>
+                    {participant.id === user?.id &&
+                      videoState.localStream &&
+                      participant.videoEnabled && (
+                        <div className="flex items-center space-x-1">
+                          <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                          <span className="text-xs text-white">Live</span>
+                        </div>
+                      )}
+                    {participant.isHost && (
+                      <span className="bg-yellow-500 text-black text-xs px-2 py-1 rounded-full">
+                        Host
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Status indicators */}
+                  <div className="absolute bottom-4 right-4 flex items-center space-x-1">
+                    {!participant.audioEnabled && (
+                      <div className="bg-red-500 p-1 rounded-full">
+                        <MicOff className="h-3 w-3 text-white" />
                       </div>
                     )}
-
-                    {/* Participant Info */}
-                    <div className="absolute bottom-4 left-4 flex items-center space-x-2">
-                      <span className="text-white text-sm font-medium">
-                        {participant.id === user?.id ? "You" : participant.name}
-                      </span>
-                      {participant.id === user?.id &&
-                        videoState.localStream &&
-                        participant.videoEnabled && (
-                          <div className="flex items-center space-x-1">
-                            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                            <span className="text-xs text-white">Live</span>
-                          </div>
-                        )}
-                      {participant.isHost && (
-                        <span className="bg-yellow-500 text-black text-xs px-2 py-1 rounded-full">
-                          Host
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Status indicators */}
-                    <div className="absolute bottom-4 right-4 flex items-center space-x-1">
-                      {!participant.audioEnabled && (
-                        <div className="bg-red-500 p-1 rounded-full">
-                          <MicOff className="h-3 w-3 text-white" />
-                        </div>
-                      )}
-                      {!participant.videoEnabled && (
-                        <div className="bg-red-500 p-1 rounded-full">
-                          <VideoOff className="h-3 w-3 text-white" />
-                        </div>
-                      )}
-                    </div>
+                    {!participant.videoEnabled && (
+                      <div className="bg-red-500 p-1 rounded-full">
+                        <VideoOff className="h-3 w-3 text-white" />
+                      </div>
+                    )}
                   </div>
-                ))}
+                </div>
+              ))}
             </div>
 
             {/* Call Controls */}
