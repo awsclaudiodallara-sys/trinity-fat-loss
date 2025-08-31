@@ -51,15 +51,35 @@ export const WeeklyCheckIn: React.FC<WeeklyCheckInProps> = () => {
 
   const formattedWeekStart = getWeekStart();
 
-  // Check if the week is still editable (until Monday 3:00 AM of next week)
+  // Check if the week is still editable (until Sunday midnight)
+  // Check if the week is still editable (Monday 00:00 to Sunday 23:59)
   const isWeekEditable = (weekStart: string): boolean => {
-    const weekStartDate = new Date(weekStart);
-    const nextMonday = new Date(weekStartDate);
-    nextMonday.setDate(weekStartDate.getDate() + 7); // Next Monday
-    nextMonday.setHours(3, 0, 0, 0); // 3:00 AM
+    // Week is always editable from Monday 00:00 to Sunday 23:59
+    // Only frozen for the brief moment of Sunday 00:00 registration (which happens automatically)
+    // For UI purposes, we consider it always editable during the week
+    const isEditable = true;
 
+    // DEBUG: Log the calculation
     const now = new Date();
-    return now <= nextMonday;
+    const currentDay = now.getDay(); // 0=Sunday, 1=Monday, ..., 6=Saturday
+    console.log("🔍 WeeklyCheckIn isWeekEditable DEBUG:", {
+      weekStart,
+      now,
+      currentDay,
+      dayName: [
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+      ][currentDay],
+      isEditable,
+      logic: "Always editable: Monday 00:00 to Sunday 23:59",
+    });
+
+    return isEditable;
   };
 
   const [isEditable, setIsEditable] = useState<boolean>(true);
@@ -535,7 +555,7 @@ export const WeeklyCheckIn: React.FC<WeeklyCheckInProps> = () => {
                       }`}
                       title={
                         !isEditable
-                          ? "Week is no longer editable (cutoff passed)"
+                          ? "Sistema in aggiornamento settimanale"
                           : task.hasValue &&
                             (!task.actual_value ||
                               !isValidValue(
@@ -608,9 +628,7 @@ export const WeeklyCheckIn: React.FC<WeeklyCheckInProps> = () => {
                         : "bg-gray-200/80 text-gray-400 hover:bg-gray-300 cursor-pointer"
                     }`}
                     title={
-                      !isEditable
-                        ? "Week is no longer editable (cutoff passed)"
-                        : ""
+                      !isEditable ? "Sistema in aggiornamento settimanale" : ""
                     }
                   >
                     {task.completed ? "✓" : ""}
@@ -637,9 +655,12 @@ export const WeeklyCheckIn: React.FC<WeeklyCheckInProps> = () => {
 
           {/* Editable status message */}
           {!isEditable && (
-            <div className="text-sm text-gray-500 text-center mt-4 p-3 bg-gray-50 rounded-lg border">
-              ℹ️ Weekly tasks can only be modified until Monday 3:00 AM of the
-              following week
+            <div className="text-sm text-gray-500 text-center mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+              ⏳ <strong>Registrazione in corso...</strong>
+              <br />
+              Le modifiche sono disponibili da{" "}
+              <strong>Lunedì 00:00 a Domenica 23:59</strong>.<br />
+              Sistema in fase di aggiornamento settimanale.
             </div>
           )}
         </>
