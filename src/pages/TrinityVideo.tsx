@@ -8,7 +8,6 @@ import {
   Phone,
   PhoneOff,
   Monitor,
-  Settings,
   Users,
   MessageCircle,
   Clock,
@@ -109,36 +108,30 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
 
   // Mock data per ora - sarà sostituito con dati reali
   useEffect(() => {
+    if (!user || !trioData) {
+      setIsLoading(false);
+      return;
+    }
+
+    // Crea partecipanti basati sui membri reali del trio
+    const participants: VideoCallParticipant[] = trioData.members.map(
+      (member, index) => ({
+        id: member.id,
+        name: member.name,
+        videoEnabled:
+          member.id === user.id ? localVideoEnabled : Math.random() > 0.5, // Random per altri
+        audioEnabled:
+          member.id === user.id ? localAudioEnabled : Math.random() > 0.3,
+        isConnected: member.id === user.id ? false : Math.random() > 0.7, // User non ancora connesso
+        isHost: index === 0, // Primo membro è host
+      })
+    );
+
     const mockSession: VideoCallSession = {
-      id: "trinity_call_1",
+      id: `trinity_call_${trioData.id}`,
       scheduledTime: new Date().toISOString(),
       duration: 30,
-      participants: [
-        {
-          id: "user1",
-          name: "Claudio",
-          videoEnabled: true,
-          audioEnabled: true,
-          isConnected: true,
-          isHost: true,
-        },
-        {
-          id: "user2",
-          name: "Anna",
-          videoEnabled: false,
-          audioEnabled: true,
-          isConnected: true,
-          isHost: false,
-        },
-        {
-          id: user?.id || "anonymous",
-          name: user?.email || "Current User", // Use email as name or fallback
-          videoEnabled: localVideoEnabled,
-          audioEnabled: localAudioEnabled,
-          isConnected: false,
-          isHost: false,
-        },
-      ],
+      participants,
       status: "waiting",
       agenda: [
         "Weekly progress review",
@@ -152,7 +145,7 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
       setCallSession(mockSession);
       setIsLoading(false);
     }, 500);
-  }, [user, localVideoEnabled, localAudioEnabled]);
+  }, [user, trioData, localVideoEnabled, localAudioEnabled]);
 
   // Timer per durata chiamata
   useEffect(() => {
@@ -336,11 +329,6 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
                 )}
               </div>
             </div>
-          </div>
-          <div className="flex items-center space-x-2">
-            <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-              <Settings className="h-5 w-5 text-gray-600" />
-            </button>
           </div>
         </div>
       </div>
