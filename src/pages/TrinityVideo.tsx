@@ -168,9 +168,10 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
     }, 500);
   }, [user, trioData, localVideoEnabled, localAudioEnabled]);
 
-  // TEMP: Crea una sessione di default per testing quando connesso
+  // TEMP: Crea una sessione di default per testing quando connesso (SOLO UNA VOLTA)
   useEffect(() => {
     if (isConnected && !callSession && trioData && user) {
+      console.log("🚀 Creating initial call session");
       const defaultSession: VideoCallSession = {
         id: "demo-session",
         scheduledTime: new Date().toISOString(),
@@ -179,7 +180,7 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
         participants: trioData.members.map((member) => ({
           id: member.id,
           name: member.name,
-          isConnected: member.id === user.id,
+          isConnected: member.id === user.id, // Solo l'utente corrente è connesso inizialmente
           videoEnabled: member.id === user.id ? localVideoEnabled : false,
           audioEnabled: member.id === user.id ? localAudioEnabled : false,
           isHost: member.id === user.id,
@@ -193,9 +194,63 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
     callSession,
     trioData,
     user,
-    localVideoEnabled,
-    localAudioEnabled,
+    // REMOVED: localVideoEnabled, localAudioEnabled - questi non devono ricreare la sessione!
   ]);
+
+  // Separate effect: Aggiorna SOLO lo stato video/audio dei partecipanti esistenti
+  useEffect(() => {
+    // Guard: Solo se abbiamo una sessione attiva e un utente
+    if (!callSession || !user?.id) {
+      return;
+    }
+
+    console.log("🔄 Updating participant audio/video status", {
+      localVideoEnabled,
+      localAudioEnabled,
+      sessionId: callSession.id,
+      hasSession: !!callSession,
+    });
+
+    setCallSession((prevSession) => {
+      if (!prevSession) return prevSession;
+
+      // Verifica se il participant ha effettivamente bisogno di aggiornamento
+      const currentParticipant = prevSession.participants.find(
+        (p) => p.id === user.id
+      );
+      if (
+        currentParticipant &&
+        currentParticipant.videoEnabled === localVideoEnabled &&
+        currentParticipant.audioEnabled === localAudioEnabled
+      ) {
+        console.log("⏭️ No participant update needed, skipping");
+        return prevSession; // Nessun cambiamento necessario
+      }
+
+      console.log("✅ Updating participant video/audio state", {
+        userId: user.id,
+        videoEnabled: localVideoEnabled,
+        audioEnabled: localAudioEnabled,
+        wasConnected: currentParticipant?.isConnected,
+      });
+
+      return {
+        ...prevSession,
+        participants: prevSession.participants.map((participant) => {
+          if (participant.id === user.id) {
+            return {
+              ...participant,
+              videoEnabled: localVideoEnabled,
+              audioEnabled: localAudioEnabled,
+              // isConnected rimane invariato - QUESTO È CRUCIALE!
+            };
+          }
+          return participant;
+        }),
+      };
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [localVideoEnabled, localAudioEnabled, user?.id]); // callSession intentionally excluded to prevent infinite loop
 
   // Effect per gestire il video locale in modo stabile (preview e in-call)
   useEffect(() => {
@@ -690,7 +745,7 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
             <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
               {(() => {
                 const connectedParticipants = callSession.participants.filter(
-                  (p) => p.isConnected
+                  (p) => p.isConnected || p.id === user?.id
                 );
                 console.log("Rendering participants grid:", {
                   totalParticipants: callSession.participants.length,
