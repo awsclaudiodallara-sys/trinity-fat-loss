@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { ArrowLeft, Send, Smile, Paperclip, Users } from "lucide-react";
+import { ArrowLeft, Send, Smile, Users } from "lucide-react";
 import type { ChatMessage } from "../services/trinityChatService";
 import { trinityChatService } from "../services/trinityChatService";
 
@@ -461,9 +461,6 @@ export const TrinityChat: React.FC<TrinityChatProps> = ({
       {/* Input */}
       <div className="bg-white border-t border-gray-200 px-4 py-3">
         <div className="flex items-center space-x-2">
-          <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-            <Paperclip className="h-5 w-5 text-gray-600" />
-          </button>
           <div className="flex-1 relative emoji-picker-container">
             <input
               type="text"
