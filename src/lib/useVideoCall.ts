@@ -10,7 +10,7 @@ export interface VideoState {
   error: string | null;
 }
 
-export const useVideoCall = () => {
+export const useVideoCall = (autoStart: boolean = false) => {
   const [videoState, setVideoState] = useState<VideoState>({
     localStream: null,
     isVideoEnabled: true,
@@ -20,15 +20,24 @@ export const useVideoCall = () => {
     error: null,
   });
 
+  // Auto-start video se richiesto
+  useEffect(() => {
+    if (autoStart) {
+      startVideo();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoStart]);
+
   // Inizializza la chiamata video
   const startVideo = async () => {
     try {
       setVideoState((prev) => ({ ...prev, error: null, isLoading: true }));
 
-      const stream = await webrtcService.getLocalStream(
-        videoState.isVideoEnabled,
-        videoState.isAudioEnabled
-      );
+      // Usa getUserMedia direttamente invece di webrtcService per più controllo
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: videoState.isVideoEnabled,
+        audio: videoState.isAudioEnabled,
+      });
 
       setVideoState((prev) => ({
         ...prev,
@@ -36,20 +45,34 @@ export const useVideoCall = () => {
         isConnected: true,
         isLoading: false,
       }));
+
+      return stream;
     } catch (error) {
       console.error("Errore nell'avviare il video:", error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Impossibile accedere a fotocamera/microfono";
       setVideoState((prev) => ({
         ...prev,
-        error: "Impossibile accedere a fotocamera/microfono",
+        error: errorMessage,
         isConnected: false,
         isLoading: false,
       }));
+      throw error;
     }
   };
 
   // Stoppa la chiamata video
   const stopVideo = () => {
+    // Ferma tutti i track dello stream locale
+    if (videoState.localStream) {
+      videoState.localStream.getTracks().forEach((track) => track.stop());
+    }
+
+    // Ferma anche tramite webrtcService per consistenza
     webrtcService.stopLocalStream();
+
     setVideoState({
       localStream: null,
       isVideoEnabled: true,

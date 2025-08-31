@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   ArrowLeft,
   Video,
@@ -93,9 +93,18 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
     videoState,
     startVideo: startRealVideo,
     stopVideo: stopRealVideo,
-    toggleVideo: toggleRealVideo,
-    toggleAudio: toggleRealAudio,
   } = useVideoCall();
+
+  // Debug log per vedere lo stato del video
+  useEffect(() => {
+    console.log("VideoState changed:", videoState);
+  }, [videoState]);
+
+  // Refs per evitare re-render dei video
+  const localVideoRef = useRef<HTMLVideoElement>(null);
+  const remoteVideoRefs = useRef<{ [key: string]: HTMLVideoElement | null }>(
+    {}
+  );
 
   // Hook per gestire il signaling WebRTC P2P
   const callId = "trinity_call_demo"; // In produzione, sarà dinamico
@@ -118,11 +127,9 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
       (member, index) => ({
         id: member.id,
         name: member.name,
-        videoEnabled:
-          member.id === user.id ? localVideoEnabled : Math.random() > 0.5, // Random per altri
-        audioEnabled:
-          member.id === user.id ? localAudioEnabled : Math.random() > 0.3,
-        isConnected: member.id === user.id ? false : Math.random() > 0.7, // User non ancora connesso
+        videoEnabled: member.id === user.id ? localVideoEnabled : false, // Altri sempre disconnessi per ora
+        audioEnabled: member.id === user.id ? localAudioEnabled : false,
+        isConnected: member.id === user.id ? false : false, // Solo user può connettersi, altri sempre disconnessi per demo
         isHost: index === 0, // Primo membro è host
       })
     );
@@ -146,6 +153,37 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
       setIsLoading(false);
     }, 500);
   }, [user, trioData, localVideoEnabled, localAudioEnabled]);
+
+  // Effect per gestire il video locale in modo stabile
+  useEffect(() => {
+    console.log("useEffect localVideo:", {
+      hasRef: !!localVideoRef.current,
+      hasStream: !!videoState.localStream,
+      localVideoEnabled,
+    });
+
+    if (localVideoRef.current && videoState.localStream && localVideoEnabled) {
+      const video = localVideoRef.current;
+      if (video.srcObject !== videoState.localStream) {
+        video.srcObject = videoState.localStream;
+        video.play().catch((error) => {
+          console.error("Error playing video:", error);
+        });
+      }
+    }
+  }, [videoState.localStream, localVideoEnabled]);
+
+  // Effect per gestire i video remoti in modo stabile
+  useEffect(() => {
+    if (signalingState.remoteStream) {
+      Object.values(remoteVideoRefs.current).forEach((video) => {
+        if (video) {
+          video.srcObject = signalingState.remoteStream;
+          video.play().catch(console.error);
+        }
+      });
+    }
+  }, [signalingState.remoteStream]);
 
   // Timer per durata chiamata
   useEffect(() => {
@@ -214,10 +252,20 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
   };
 
   // Utilizziamo le funzioni reali dal hook invece delle mock
-  const toggleVideo = () => {
+  const toggleVideo = async () => {
     const newVideoState = !localVideoEnabled;
+
+    // SEMPRE aggiorna lo stato UI
     setLocalVideoEnabled(newVideoState);
-    toggleRealVideo(); // Chiamata reale per gestire il video hardware
+
+    // Se c'è già uno stream attivo, aggiorna i track
+    if (videoState.localStream) {
+      const videoTrack = videoState.localStream.getVideoTracks()[0];
+      if (videoTrack) {
+        videoTrack.enabled = newVideoState;
+        console.log("Video track enabled:", newVideoState);
+      }
+    }
 
     // Aggiorna anche lo stato del partecipante nella sessione
     if (callSession) {
@@ -231,10 +279,18 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
     }
   };
 
-  const toggleAudio = () => {
+  const toggleAudio = async () => {
     const newAudioState = !localAudioEnabled;
     setLocalAudioEnabled(newAudioState);
-    toggleRealAudio(); // Chiamata reale per gestire l'audio hardware
+
+    // Se c'è già uno stream attivo, aggiorna i track
+    if (videoState.localStream) {
+      const audioTrack = videoState.localStream.getAudioTracks()[0];
+      if (audioTrack) {
+        audioTrack.enabled = newAudioState;
+        console.log("Audio track enabled:", newAudioState);
+      }
+    }
 
     // Aggiorna anche lo stato del partecipante nella sessione
     if (callSession) {
@@ -414,41 +470,55 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
 
             {/* Preview */}
             <div className="relative w-80 h-60 bg-gray-800 rounded-xl overflow-hidden">
-              {localVideoEnabled ? (
-                videoState.localStream ? (
+              {videoState.isLoading ? (
+                <div className="w-full h-full bg-gray-700 flex items-center justify-center">
+                  <div className="text-center text-white">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-2"></div>
+                    <p className="text-sm">Starting camera...</p>
+                  </div>
+                </div>
+              ) : videoState.localStream ? (
+                <div className="relative w-full h-full">
                   <video
-                    ref={(video) => {
-                      if (video && videoState.localStream) {
-                        video.srcObject = videoState.localStream;
-                      }
-                    }}
+                    ref={localVideoRef}
                     autoPlay
                     muted
                     playsInline
                     className="w-full h-full object-cover"
                   />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center">
-                    <div className="text-white text-6xl">📹</div>
-                  </div>
-                )
-              ) : (
+                  {!localVideoEnabled && (
+                    <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                      <VideoOff className="h-12 w-12 text-white" />
+                    </div>
+                  )}
+                </div>
+              ) : !localVideoEnabled ? (
                 <div className="w-full h-full bg-gray-700 flex items-center justify-center">
                   <div className="text-center text-white">
                     <VideoOff className="h-12 w-12 mx-auto mb-2" />
                     <p>Camera off</p>
                   </div>
                 </div>
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center">
+                  <div className="text-center text-white">
+                    <Video className="h-12 w-12 mx-auto mb-2" />
+                    <p className="text-sm">Click "Test Camera" to start</p>
+                  </div>
+                </div>
               )}
+
               <div className="absolute bottom-4 left-4 text-white text-sm font-medium">
                 <div className="flex items-center space-x-2">
                   <span>You</span>
-                  {videoState.localStream && localVideoEnabled && (
-                    <div className="flex items-center space-x-1">
-                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                      <span className="text-xs">Live</span>
-                    </div>
-                  )}
+                  {videoState.localStream &&
+                    localVideoEnabled &&
+                    !videoState.isLoading && (
+                      <div className="flex items-center space-x-1">
+                        <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                        <span className="text-xs">Live</span>
+                      </div>
+                    )}
                 </div>
               </div>
             </div>
@@ -553,45 +623,47 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
                     key={participant.id}
                     className="relative bg-gray-800 rounded-xl overflow-hidden"
                   >
-                    {participant.videoEnabled ? (
-                      participant.name === "You" && videoState.localStream ? (
+                    {/* Mostra sempre il video se disponibile, con overlay se disabilitato */}
+                    {participant.id === user?.id && videoState.localStream ? (
+                      <div className="relative w-full h-full">
                         <video
-                          ref={(video) => {
-                            if (video && videoState.localStream) {
-                              video.srcObject = videoState.localStream;
-                            }
-                          }}
+                          ref={localVideoRef}
                           autoPlay
                           muted
                           playsInline
                           className="w-full h-full object-cover"
                         />
-                      ) : participant.name !== "You" &&
-                        signalingState.remoteStream ? (
+                        {!participant.videoEnabled && (
+                          <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center">
+                            <VideoOff className="h-8 w-8 text-white" />
+                          </div>
+                        )}
+                      </div>
+                    ) : participant.id !== user?.id &&
+                      signalingState.remoteStream ? (
+                      <div className="relative w-full h-full">
                         <video
                           ref={(video) => {
                             if (video && signalingState.remoteStream) {
-                              video.srcObject = signalingState.remoteStream;
+                              remoteVideoRefs.current[participant.id] = video;
                             }
                           }}
                           autoPlay
                           playsInline
                           className="w-full h-full object-cover"
                         />
-                      ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center">
-                          <div className="text-white text-4xl">
-                            {participant.name === "You" ? "📹" : "👤"}
+                        {!participant.videoEnabled && (
+                          <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center">
+                            <VideoOff className="h-8 w-8 text-white" />
                           </div>
-                        </div>
-                      )
+                        )}
+                      </div>
                     ) : (
                       <div className="w-full h-full bg-gray-700 flex items-center justify-center">
                         <div className="text-center text-white">
-                          <div className="w-16 h-16 bg-gray-600 rounded-full flex items-center justify-center mx-auto mb-2 text-2xl">
-                            {participant.name.charAt(0)}
-                          </div>
+                          <VideoOff className="h-8 w-8 mx-auto mb-2" />
                           <p className="text-sm">{participant.name}</p>
+                          <p className="text-xs opacity-75">Camera off</p>
                         </div>
                       </div>
                     )}
@@ -599,9 +671,9 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
                     {/* Participant Info */}
                     <div className="absolute bottom-4 left-4 flex items-center space-x-2">
                       <span className="text-white text-sm font-medium">
-                        {participant.name}
+                        {participant.id === user?.id ? "You" : participant.name}
                       </span>
-                      {participant.name === "You" &&
+                      {participant.id === user?.id &&
                         videoState.localStream &&
                         participant.videoEnabled && (
                           <div className="flex items-center space-x-1">
