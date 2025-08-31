@@ -7,6 +7,7 @@ import { WeeklyCheckIn } from "../checkin/WeeklyCheckIn";
 import { BodyCompositionDashboard } from "../health/BodyCompositionDashboard";
 import { ChatPreview } from "../chat/ChatPreview";
 import { VideoCallWidget } from "../video/VideoCallWidget";
+import { NotificationTester } from "../debug/NotificationTester";
 
 interface TrioMember {
   id: string;
@@ -333,6 +334,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
         </div>
       )}
+
+      {/* Debug: Notification Tester (temporaneo) */}
+      <NotificationTester />
     </div>
   );
 };

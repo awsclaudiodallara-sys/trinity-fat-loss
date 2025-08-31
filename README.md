@@ -2,6 +2,22 @@
 
 Trinity Fat Loss è un'app innovativa di fitness sociale che connette persone con obiettivi simili in gruppi di 3 (Trinity) per supporto reciproco e motivazione nel percorso di perdita peso.
 
+## 🚀 TODO DOMANI - Setup Email Completo
+
+### **Attività Priority 1 - Email Notifications**
+- [ ] **Resend.com Setup**: Creare account e ottenere API key produzione
+- [ ] **Supabase Secrets**: Configurare RESEND_API_KEY con key reale (non test)
+- [ ] **Test Email End-to-End**: Verificare invio email trio formation
+- [ ] **Email Templates**: Ottimizzare template HTML per trio formation
+- [ ] **Error Handling**: Migliorare gestione errori email service
+
+### **Sistema Attuale (Completato Oggi)**
+- ✅ Edge Function `send-notification-email` deployata e funzionante
+- ✅ Trio formation: SOLO EMAIL (no push, no toast)
+- ✅ Database notification_logs configurato con RLS
+- ✅ NotificationService aggiornato per email-only trio formation
+- ✅ Modalità test funzionante con "re_test_key"
+
 ## 🎯 Obiettivo dell'App
 
 ### **Il Problema**
@@ -421,32 +437,43 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 #### **Notifiche Multi-Platform**
 
-- [ ] **Email Notifications (PWA Web)**
+- [🔧] **Email Notifications (PWA Web)** - IN SVILUPPO
 
-  - [ ] Sistema email transazionali (Supabase Auth + SendGrid/Resend)
+  - [✅] Edge Function send-notification-email deployata
+  - [✅] Integrazione Resend API configurata (modalità test)
+  - [🔧] **DOMANI**: Setup completo Resend.com con API key produzione
+  - [🔧] **DOMANI**: Test email trio formation end-to-end
+  - [✅] Trio formation: SOLO EMAIL (no push, no toast)
   - [ ] Welcome email post-registrazione con guida
-  - [ ] Notifica matching trovato con dettagli trio
   - [ ] Reminder weekly check-in via email
   - [ ] Reminder video call settimanale (24h + 1h prima)
   - [ ] Summary weekly progress via email
   - [ ] Achievement unlock notifications via email
 
-- [ ] **Push Notifications (Android)**
+- [❌] **Push Notifications (Android)** - DISABILITATE per trio formation
 
-  - [ ] Integrazione Firebase Cloud Messaging
-  - [ ] Push notification matching completato
+  - [❌] Push notification trio formation RIMOSSA
+  - [ ] Integrazione Firebase Cloud Messaging (futuro)
   - [ ] Daily check-in reminder push
   - [ ] Video call reminder push (timing configurabile)
   - [ ] New chat message push (configurable, non spam)
   - [ ] Achievement unlock celebration push
   - [ ] Trio member progress milestone push
 
-- [ ] **Smart Notification Logic**
-  - [ ] User preference center (email/push on/off per tipo)
+- [❌] **Toast Notifications (Web)** - DISABILITATE per trio formation
+
+  - [❌] Toast notification trio formation RIMOSSA
+  - [✅] Database schema notification_logs configurato
+  - [✅] Realtime subscription per toast funzionante
+  - [✅] Sistema toast per altre notifiche (video call, chat, etc.)
+
+- [✅] **Smart Notification Logic**
+  - [✅] User preference center configurato in database
+  - [✅] trio_formation_push = FALSE per tutti gli utenti
+  - [✅] Database constraints e RLS policies
   - [ ] Time zone aware notifications
   - [ ] Do not disturb hours respect
   - [ ] Frequency capping per evitare spam
-  - [ ] A/B testing per ottimizzare engagement
 
 ### **👥 Comunicazione & Social (Priorità Media)**
 

@@ -9,6 +9,9 @@ import { DataCollectionScreen } from "./components/onboarding/DataCollectionScre
 import { FitnessLevelScreen } from "./components/onboarding/FitnessLevelScreen";
 import { Dashboard } from "./components/dashboard/Dashboard";
 import { useAuth } from "./hooks/useAuth";
+import { useToastNotifications } from "./hooks/useToastNotifications";
+import { useRealtimeNotifications } from "./hooks/useRealtimeNotifications";
+import { ToastContainer } from "./components/common/ToastContainer";
 import Matching from "./components/onboarding/Matching";
 import { supabase, matchingService } from "./lib/supabase";
 import { AchievementsPage } from "./pages/AchievementsPage";
@@ -53,6 +56,12 @@ interface UserProgress {
 }
 
 function App() {
+  // 🔔 Attiva il sistema di notifiche toast globalmente
+  useToastNotifications();
+
+  // 🔌 Attiva il sistema di notifiche realtime
+  useRealtimeNotifications();
+
   const [currentScreen, setCurrentScreen] = useState<AppScreen>("landing");
   const [matchingState, setMatchingState] = useState({
     skipAnimations: false,
@@ -548,6 +557,9 @@ function App() {
           </button>
         </div>
       )}
+
+      {/* 🔔 Toast Notifications Container */}
+      <ToastContainer />
     </div>
   );
 }

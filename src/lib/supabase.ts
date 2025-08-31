@@ -293,7 +293,59 @@ export const matchingService = {
     }
 
     console.log("🎉 TRIO CREATED SUCCESSFULLY!", trio.id);
+
+    // 🔔 INVIA NOTIFICHE DI FORMAZIONE TRIO
+    await this.sendTrioFormationNotifications(
+      trio.id,
+      allUserIds,
+      users.commonData.weight_goal
+    );
+
     return trio.id;
+  },
+
+  /**
+   * Invia notifiche di formazione trio a tutti i membri
+   */
+  async sendTrioFormationNotifications(
+    trioId: string,
+    userIds: string[],
+    weightGoal: string
+  ): Promise<void> {
+    try {
+      // Importa il service dinamicamente per evitare dipendenze circolari
+      const { NotificationService } = await import(
+        "../services/notificationService"
+      );
+
+      // Ottieni i nomi dei membri
+      const { data: members } = await supabase
+        .from("user_profiles")
+        .select("id, name")
+        .in("id", userIds);
+
+      const memberNames = members?.map((m) => m.name) || [];
+      const trioName = `Trinity ${weightGoal} Team`;
+
+      // Invia notifica a ogni membro
+      for (const userId of userIds) {
+        // Ottieni i nomi degli altri membri (escluso l'utente corrente)
+        const otherMembers = memberNames.filter(
+          (_, index) => members?.[index]?.id !== userId
+        );
+
+        await NotificationService.notifyTrioFormationSuccess(userId, {
+          id: trioId,
+          name: trioName,
+          memberNames: otherMembers,
+        });
+      }
+
+      console.log("✅ Trio formation notifications sent to all members");
+    } catch (error) {
+      console.error("❌ Failed to send trio formation notifications:", error);
+      // Non bloccare il flusso principale per errori di notifica
+    }
   },
 
   async processMatching(

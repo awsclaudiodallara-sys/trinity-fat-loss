@@ -1,0 +1,20 @@
+# TRINITY FAT LOSS - Supabase Configuration
+# Configurazione per Supabase CLI e Edge Functions
+
+[api]
+# Porta per il server locale di Supabase
+port = 54321
+# Schema da usare per le API
+schemas = ["public", "auth", "storage"]
+
+[db]
+# Porta per il database PostgreSQL locale
+port = 54322
+
+[studio]
+# Porta per Supabase Studio
+port = 54323
+
+[functions.send-notification-email]
+# Configurazione per la edge function di invio email
+verify_jwt = false
