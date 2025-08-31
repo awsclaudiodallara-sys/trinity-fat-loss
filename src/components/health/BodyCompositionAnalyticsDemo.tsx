@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { AchievementsAnalytics } from "../gamification/AchievementsAnalytics";
+// import { AchievementsAnalytics } from "../gamification/AchievementsAnalytics";
 
 // Mock data per dimostrare le analytics
 const mockBodyCompositionHistory = [
@@ -806,7 +806,10 @@ export const BodyCompositionAnalyticsDemo: React.FC = () => {
       {/* Achievements Tab */}
       {activeTab === "achievements" && (
         <div className="space-y-6">
-          <AchievementsAnalytics />
+          {/* <AchievementsAnalytics /> */}
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <p className="text-yellow-800">🚧 Achievement Analytics in via di sviluppo</p>
+          </div>
 
           {/* Mock Integration Preview */}
           <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-6 border border-purple-200">

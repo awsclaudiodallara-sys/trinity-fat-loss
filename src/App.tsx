@@ -11,6 +11,7 @@ import { Dashboard } from "./components/dashboard/Dashboard";
 import { useAuth } from "./hooks/useAuth";
 import Matching from "./components/onboarding/Matching";
 import { supabase, matchingService } from "./lib/supabase";
+import { AchievementsPage } from "./pages/AchievementsPage";
 import AnalyticsDemo from "./pages/AnalyticsDemo";
 import { TrinityChat } from "./pages/TrinityChat";
 import { TrinityVideo } from "./pages/TrinityVideo";
@@ -28,7 +29,8 @@ type AppScreen =
   | "dashboard"
   | "analytics-demo"
   | "trinity-chat"
-  | "trinity-video";
+  | "trinity-video"
+  | "achievements";
 
 interface UserData {
   name: string;
@@ -418,6 +420,8 @@ function App() {
         );
       case "trinity-video":
         return <TrinityVideo onGoBack={() => setCurrentScreen("dashboard")} />;
+      case "achievements":
+        return <AchievementsPage />;
       default:
         return <LandingPage onStartOnboarding={handleStartOnboarding} />;
     }
@@ -531,6 +535,16 @@ function App() {
             }`}
           >
             📹 Trinity Video
+          </button>
+          <button
+            onClick={() => setCurrentScreen("achievements")}
+            className={`block px-2 py-1 rounded ${
+              currentScreen === "achievements"
+                ? "bg-blue-100 text-blue-800"
+                : "text-blue-600 hover:bg-blue-50"
+            }`}
+          >
+            🏆 Achievements
           </button>
         </div>
       )}
