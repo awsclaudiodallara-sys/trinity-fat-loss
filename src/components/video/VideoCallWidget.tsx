@@ -310,7 +310,7 @@ export const VideoCallWidget: React.FC<VideoCallWidgetProps> = ({
             className="w-full flex items-center justify-center space-x-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-3 rounded-lg transition-colors duration-200 font-medium"
           >
             <Calendar className="h-4 w-4" />
-            <span>Schedule First Weekly Call</span>
+            <span>Schedule Next Weekly Call</span>
           </button>
         )}
       </div>
