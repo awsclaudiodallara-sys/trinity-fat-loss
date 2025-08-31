@@ -96,22 +96,10 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
   } = useVideoCall();
 
   // Debug log per vedere lo stato del video
+  // VideoState changed tracking (removed auto-start video for testing)
   useEffect(() => {
     console.log("VideoState changed:", videoState);
   }, [videoState]);
-
-  // Auto-start video quando la pagina si carica per il test
-  useEffect(() => {
-    if (!videoState.localStream && !videoState.isLoading && !videoState.error) {
-      console.log("Auto-starting video for testing...");
-      startRealVideo();
-    }
-  }, [
-    videoState.localStream,
-    videoState.isLoading,
-    videoState.error,
-    startRealVideo,
-  ]);
 
   // Refs per evitare re-render dei video
   const localVideoRef = useRef<HTMLVideoElement>(null); // Per preview
@@ -325,8 +313,10 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
 
   const joinCall = async () => {
     try {
-      // Avvia la video chiamata reale
-      await startRealVideo();
+      // Avvia la video chiamata reale solo se non è già attiva
+      if (!videoState.localStream) {
+        await startRealVideo();
+      }
 
       // Per demo, avvia connessione P2P con un utente simulato
       // In produzione, questo sarà basato sui partecipanti reali
@@ -440,6 +430,12 @@ export const TrinityVideo: React.FC<TrinityVideoProps> = ({ onGoBack }) => {
   };
 
   const goBack = () => {
+    // Se c'è uno stream attivo dalla pre-call (Test Camera), fermalo
+    if (videoState.localStream && !isConnected) {
+      console.log("🧹 Stopping test camera stream before going back");
+      stopRealVideo();
+    }
+
     if (onGoBack) {
       onGoBack();
     } else {
